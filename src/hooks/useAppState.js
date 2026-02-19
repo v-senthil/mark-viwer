@@ -8,7 +8,7 @@ const RECENT_KEY = 'markviewer_recent';
 const AUTOSAVE_INTERVAL = 30000;
 
 const defaultSettings = {
-  darkMode: false,
+  darkMode: true,
   viewMode: 'split', // 'split' | 'editor' | 'preview'
   editorFontSize: 14,
   previewFontSize: 16,
