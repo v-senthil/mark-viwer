@@ -603,6 +603,117 @@ This tool does **one thing** and does it *brilliantly*.
   </div>
 </section>
 
+<!-- DEEP FEATURES -->
+<section class="ai-band" style="background: linear-gradient(135deg, #0f1419 0%, #1a1e26 50%, #0f1419 100%);">
+  <div class="ai-band-inner">
+    <p class="ai-tag reveal" style="background: rgba(200,64,26,0.15); border-color: rgba(200,64,26,0.3); color: var(--accent);">🛠️ Built-In Power Features</p>
+    <h2 class="reveal">Everything You Need.<br><span style="color: var(--accent);">Nothing You Don't.</span></h2>
+    <p class="reveal">MarkViewer isn't just a preview tool — it's a full-featured Markdown workstation packed with capabilities that rival desktop apps. Here's what's built in:</p>
+
+    <h3 class="reveal" style="color: #e2e8f0; margin-top: 2.5rem;">🔗 Public Share URLs with Expiry</h3>
+    <p class="reveal">Generate a <strong style="color: #e2e8f0;">shareable public URL</strong> for any document — your entire Markdown content gets LZ-compressed and embedded directly into the URL. No server, no database, no account needed. Paste the link in any browser and it renders instantly.</p>
+    <p class="reveal">Choose a validity: <strong style="color: #e2e8f0;">Permanent</strong>, <strong style="color: #e2e8f0;">1 Hour</strong>, <strong style="color: #e2e8f0;">1 Day</strong>, <strong style="color: #e2e8f0;">1 Week</strong>, or <strong style="color: #e2e8f0;">30 Days</strong>. Expired links are automatically rejected with a clear toast notification. The URL stays in the address bar so you can bookmark and reuse it.</p>
+
+    <div class="ai-code reveal" data-label="How It Works" style="border-color: rgba(200,64,26,0.2);">
+      <code><span class="cm">// Your content gets compressed into the URL</span>
+<span class="kw">https://v-senthil.github.io/mark-viwer/</span><span class="hl">#doc=</span><span class="str">N4IgDgTg...</span>
+
+<span class="cm">// Open it anywhere — incognito, different browser, phone</span>
+<span class="cm">// The content is IN the URL. No backend required.</span>
+
+<span class="cm">// Choose link validity:</span>
+<span class="hl">Permanent</span> · <span class="hl">1 Hour</span> · <span class="hl">1 Day</span> · <span class="hl">1 Week</span> · <span class="hl">30 Days</span></code>
+    </div>
+
+    <h3 class="reveal" style="color: #e2e8f0;">🌿 PlantUML Diagrams</h3>
+    <p class="reveal">Write <strong style="color: #e2e8f0;">PlantUML</strong> directly in fenced code blocks using <code style="color: var(--accent);">plantuml</code>, <code style="color: var(--accent);">planttext</code>, or <code style="color: var(--accent);">puml</code> as the language tag. Diagrams render live as SVG via the PlantUML server — class diagrams, sequence diagrams, activity diagrams, and more.</p>
+
+    <div class="ai-code reveal" data-label="PlantUML" style="border-color: rgba(200,64,26,0.2);">
+      <code><span class="kw">```plantuml</span>
+<span class="str">@startuml</span>
+<span class="hl">actor</span> User
+<span class="hl">participant</span> "Editor" <span class="hl">as</span> E
+<span class="hl">participant</span> "Preview" <span class="hl">as</span> P
+
+User <span class="str">-></span> E: Types Markdown
+E <span class="str">-></span> P: Renders HTML
+P <span class="str">--></span> User: Shows output
+<span class="str">@enduml</span>
+<span class="kw">```</span></code>
+    </div>
+
+    <h3 class="reveal" style="color: #e2e8f0;">📊 Mermaid Diagrams</h3>
+    <p class="reveal">Create <strong style="color: #e2e8f0;">flowcharts, sequence diagrams, Gantt charts, pie charts</strong>, and more using Mermaid syntax — rendered live in the preview pane with full SVG output.</p>
+
+    <h3 class="reveal" style="color: #e2e8f0;">🧮 KaTeX Math Equations</h3>
+    <p class="reveal">Inline math with <code style="color: var(--accent);">$E=mc^2$</code> and display blocks with <code style="color: var(--accent);">$$...$$</code>. Full LaTeX math rendering powered by KaTeX — perfect for technical documents, academic notes, and scientific writing.</p>
+
+    <div class="ai-cards" style="margin-top: 2.5rem;">
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">🎨</div>
+        <h3 style="color: var(--accent);">Themes & Fonts</h3>
+        <p>Multiple editor themes (GitHub, Dracula, Nord) and preview themes (GitHub, Notion, Minimal). Choose between Sans Serif, Serif, or Monospace fonts. Customize font sizes and line height to your liking.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">🌙</div>
+        <h3 style="color: var(--accent);">Dark & Light Mode</h3>
+        <p>Full dark mode support across the entire UI — editor, preview, panels, and toolbar. Toggle instantly with a click or Ctrl+Shift+K.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">🔗</div>
+        <h3 style="color: var(--accent);">Public Share URLs</h3>
+        <p>Share any document via URL with configurable expiry — permanent, 1 hour, 1 day, 1 week, or 30 days. Content is compressed into the URL itself. Zero backend.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">📐</div>
+        <h3 style="color: var(--accent);">PlantUML & Mermaid</h3>
+        <p>Render PlantUML class/sequence/activity diagrams and Mermaid flowcharts, Gantt charts, and more — all live in the preview pane.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">⌨️</div>
+        <h3 style="color: var(--accent);">Vim Mode</h3>
+        <p>Full Vim keybindings in the editor for power users. Toggle it on from the View menu or Settings panel — modal editing in the browser.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">🧘</div>
+        <h3 style="color: var(--accent);">Focus & Zen Modes</h3>
+        <p>Focus Mode hides toolbar and statusbar. Zen Mode goes full-screen with a centered editor. Typewriter Mode keeps your cursor vertically centered as you type.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">🔄</div>
+        <h3 style="color: var(--accent);">Sync Scroll</h3>
+        <p>Auto-scroll keeps editor and preview perfectly synchronized. Scroll one panel, the other follows. Toggle it from the toolbar or settings.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">📑</div>
+        <h3 style="color: var(--accent);">Presentation Mode</h3>
+        <p>Turn any Markdown document into a full-screen presentation instantly. Perfect for quick demos, meetings, and walkthroughs.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">🛠️</div>
+        <h3 style="color: var(--accent);">Rich Toolbar</h3>
+        <p>One-click insert for bold, italic, headings, links, images, tables, code blocks, task lists, Mermaid diagrams, PlantUML, and KaTeX math.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">📥</div>
+        <h3 style="color: var(--accent);">Export & Download</h3>
+        <p>Download as .md, export as standalone HTML, or print to PDF. Drag-and-drop .md files to open them. Paste images directly from clipboard.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">📚</div>
+        <h3 style="color: var(--accent);">TOC & Recent Docs</h3>
+        <p>Auto-generated Table of Contents from your headings with click-to-navigate. Recent Documents panel keeps your last 5 documents a click away.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">💾</div>
+        <h3 style="color: var(--accent);">Autosave & Syntax</h3>
+        <p>30-second autosave to localStorage. Full syntax highlighting for 100+ languages via highlight.js. Footnote support with hover tooltips.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
 <!-- SECOND ARTICLE SECTION -->
 <article>
   <h2 class="reveal">Markdown's Superpower: It Ages Like Fine Wine</h2>
