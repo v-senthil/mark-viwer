@@ -27,6 +27,8 @@ export default function App() {
   } = state;
 
   const editorRef = useRef(null);
+  const editorWrapperRef = useRef(null);
+  const previewWrapperRef = useRef(null);
   const [stats, setStats] = useState({ lines: 0, words: 0, chars: 0 });
   const [headings, setHeadings] = useState([]);
   const [splitRatio, setSplitRatio] = useState(settings.splitRatio || 50);
@@ -38,6 +40,44 @@ export default function App() {
     const timer = setTimeout(() => setDebouncedContent(content), 150);
     return () => clearTimeout(timer);
   }, [content]);
+
+  // Synchronized scrolling
+  useEffect(() => {
+    if (!settings.autoScroll || settings.viewMode !== 'split') return;
+
+    const editorEl = editorWrapperRef.current;
+    const previewEl = previewWrapperRef.current;
+    if (!editorEl || !previewEl) return;
+
+    const editorScroller = editorEl.querySelector('.cm-scroller');
+    const previewScroller = previewEl.querySelector('[data-scroll-target="preview"]');
+    if (!editorScroller || !previewScroller) return;
+
+    let scrollSource = null;
+    let scrollTimeout = null;
+
+    const syncScroll = (source, target, which) => {
+      if (scrollSource && scrollSource !== which) return;
+      scrollSource = which;
+      clearTimeout(scrollTimeout);
+      const maxScroll = source.scrollHeight - source.clientHeight;
+      const ratio = maxScroll > 0 ? source.scrollTop / maxScroll : 0;
+      target.scrollTop = ratio * (target.scrollHeight - target.clientHeight);
+      scrollTimeout = setTimeout(() => { scrollSource = null; }, 80);
+    };
+
+    const onEditorScroll = () => syncScroll(editorScroller, previewScroller, 'editor');
+    const onPreviewScroll = () => syncScroll(previewScroller, editorScroller, 'preview');
+
+    editorScroller.addEventListener('scroll', onEditorScroll, { passive: true });
+    previewScroller.addEventListener('scroll', onPreviewScroll, { passive: true });
+
+    return () => {
+      editorScroller.removeEventListener('scroll', onEditorScroll);
+      previewScroller.removeEventListener('scroll', onPreviewScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [settings.autoScroll, settings.viewMode, debouncedContent]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -177,6 +217,7 @@ export default function App() {
         {/* Editor */}
         {showEditor && (
           <div
+            ref={editorWrapperRef}
             className={`overflow-hidden ${dark ? 'bg-slate-900' : 'bg-white'}`}
             style={{
               width: viewMode === 'split' ? `${splitRatio}%` : '100%',
@@ -203,7 +244,7 @@ export default function App() {
 
         {/* Preview */}
         {showPreview && (
-          <div className="flex-1 overflow-hidden">
+          <div ref={previewWrapperRef} className="flex-1 overflow-hidden">
             <MarkdownPreview
               content={debouncedContent}
               settings={settings}

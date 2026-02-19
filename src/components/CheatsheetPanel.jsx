@@ -33,7 +33,9 @@ const sections = [
   { title: 'Extensions', items: [
     { syntax: '$E=mc^2$', desc: 'Inline math' },
     { syntax: '$$...$$', desc: 'Block math' },
-    { syntax: '```mermaid```', desc: 'Diagram' },
+    { syntax: '```mermaid```', desc: 'Mermaid diagram' },
+    { syntax: '```plantuml```', desc: 'PlantUML diagram' },
+    { syntax: '```puml```', desc: 'PlantUML (alt)' },
     { syntax: '[^1]', desc: 'Footnote' },
   ]},
 ];

@@ -4,7 +4,7 @@ import {
   FilePlus2, FolderOpen, Save, Download, FileCode2, Printer, Clock,
   Columns2, PenLine, Eye, Share2, List, BookOpen, Keyboard,
   Presentation, Target, Maximize2, Terminal, AlignCenter,
-  Settings, Sun, Moon, ChevronDown,
+  Settings, Sun, Moon, ChevronDown, Link, Timer, ArrowUpDown,
 } from 'lucide-react';
 
 /* ── Dropdown ───────────────────────────────────────────── */
@@ -102,10 +102,14 @@ export default function Navbar({
     URL.revokeObjectURL(u); toast.success('Exported HTML');
   }, []);
 
-  const handleShare = useCallback(async () => {
-    const url = getShareUrl();
+  const handleShare = useCallback(async (validityMs = null) => {
+    const url = getShareUrl(validityMs);
     try { await navigator.clipboard.writeText(url); } catch { prompt('Copy this link:', url); }
-    toast.success('Share link copied!');
+    const label = validityMs === null ? 'permanent'
+      : validityMs <= 3600000 ? '1 hour'
+      : validityMs <= 86400000 ? '1 day'
+      : validityMs <= 604800000 ? '1 week' : '30 days';
+    toast.success(`Share link copied! (${label})`);
   }, [getShareUrl]);
 
   const setView = useCallback((m) => updateSettings({ viewMode: m }), [updateSettings]);
@@ -161,6 +165,9 @@ export default function Navbar({
             <MI icon={Maximize2} label="Zen Mode" dark={dark} active={settings.zenMode} onClick={() => { updateSettings({ zenMode: !settings.zenMode }); close(); }} />
             <MI icon={AlignCenter} label="Typewriter" dark={dark} active={settings.typewriterMode} onClick={() => { updateSettings({ typewriterMode: !settings.typewriterMode }); close(); }} />
             <MI icon={Terminal} label="Vim Mode" dark={dark} active={settings.vimMode} onClick={() => { updateSettings({ vimMode: !settings.vimMode }); close(); }} />
+            <MDivider dark={dark} />
+            <MLabel dark={dark}>Scrolling</MLabel>
+            <MI icon={ArrowUpDown} label="Auto Scroll" dark={dark} active={settings.autoScroll} onClick={() => { updateSettings({ autoScroll: !settings.autoScroll }); close(); }} />
           </>)}
         </Dropdown>
 
@@ -189,6 +196,18 @@ export default function Navbar({
             </button>
           ))}
         </div>
+        {settings.viewMode === 'split' && (
+          <button
+            onClick={() => updateSettings({ autoScroll: !settings.autoScroll })}
+            title={settings.autoScroll ? 'Disable Auto Scroll' : 'Enable Auto Scroll'}
+            className={`inline-flex items-center gap-1 h-7 px-2 ml-1.5 rounded-md text-[11px] font-medium transition-all
+              ${settings.autoScroll
+                ? dark ? 'bg-blue-500/[.12] text-blue-400' : 'bg-blue-50 text-blue-600'
+                : dark ? 'text-gray-500 hover:bg-white/[.06]' : 'text-gray-400 hover:bg-gray-100'}`}>
+            <ArrowUpDown size={12} strokeWidth={2} />
+            <span className="hidden lg:inline">Sync</span>
+          </button>
+        )}
       </div>
 
       {/* Right */}
@@ -199,12 +218,25 @@ export default function Navbar({
           {hasUnsavedChanges ? 'Unsaved' : `Saved ${timeSince()}`}
         </div>
 
-        <button onClick={handleShare} title="Share"
-          className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] font-medium transition-all
-            ${dark ? 'bg-blue-500/[.12] text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
-          <Share2 size={13} strokeWidth={2} />
-          <span className="hidden sm:inline">Share</span>
-        </button>
+        <div className="relative">
+          <Dropdown dark={dark} label={
+            <span className={`inline-flex items-center gap-1.5 text-[12px] font-medium
+              ${dark ? 'text-blue-400' : 'text-blue-600'}`}>
+              <Share2 size={13} strokeWidth={2} />
+              <span className="hidden sm:inline">Share</span>
+            </span>
+          }>
+            {(close) => (<>
+              <MLabel dark={dark}>Link Validity</MLabel>
+              <MI icon={Link} label="Permanent" dark={dark} onClick={() => { handleShare(null); close(); }} />
+              <MDivider dark={dark} />
+              <MI icon={Timer} label="1 Hour" dark={dark} onClick={() => { handleShare(3600000); close(); }} />
+              <MI icon={Timer} label="1 Day" dark={dark} onClick={() => { handleShare(86400000); close(); }} />
+              <MI icon={Timer} label="1 Week" dark={dark} onClick={() => { handleShare(604800000); close(); }} />
+              <MI icon={Timer} label="30 Days" dark={dark} onClick={() => { handleShare(2592000000); close(); }} />
+            </>)}
+          </Dropdown>
+        </div>
 
         <div className={`hidden sm:block w-px h-4 mx-0.5 ${dark ? 'bg-[#21262d]' : 'bg-gray-200'}`} />
 

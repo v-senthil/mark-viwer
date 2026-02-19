@@ -85,6 +85,7 @@ export default function SettingsPanel({ settings, updateSettings, darkMode: dark
           </Section>
 
           <Section title="Modes" dark={dark}>
+            <Toggle label="Auto Scroll" desc="Sync scroll between editor & preview" dark={dark} checked={settings.autoScroll} onChange={v => updateSettings({ autoScroll: v })} />
             <Toggle label="Vim Mode" desc="Vim keybindings in editor" dark={dark} checked={settings.vimMode} onChange={v => updateSettings({ vimMode: v })} />
             <Toggle label="Focus Mode" desc="Hide toolbar & statusbar" dark={dark} checked={settings.focusMode} onChange={v => updateSettings({ focusMode: v })} />
             <Toggle label="Zen Mode" desc="Distraction-free writing" dark={dark} checked={settings.zenMode} onChange={v => updateSettings({ zenMode: v })} />

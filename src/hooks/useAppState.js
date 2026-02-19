@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { DEFAULT_MARKDOWN } from '../defaultContent';
 import LZString from 'lz-string';
+import toast from 'react-hot-toast';
 
 const STORAGE_KEY = 'markviewer_content';
 const SETTINGS_KEY = 'markviewer_settings';
@@ -20,8 +21,11 @@ const defaultSettings = {
   focusMode: false,
   zenMode: false,
   typewriterMode: false,
+  autoScroll: true,
   splitRatio: 50,
 };
+
+let _sharedLinkExpired = false;
 
 function loadFromHash() {
   try {
@@ -29,7 +33,24 @@ function loadFromHash() {
     if (hash && hash.startsWith('doc=')) {
       const compressed = hash.slice(4);
       const decoded = LZString.decompressFromEncodedURIComponent(compressed);
-      if (decoded) return decoded;
+      if (decoded) {
+        // Try new JSON format { c: content, exp?: timestamp }
+        try {
+          const data = JSON.parse(decoded);
+          if (data && data.c) {
+            if (data.exp && Date.now() > data.exp) {
+              // Link has expired — clear hash
+              _sharedLinkExpired = true;
+              window.history.replaceState(null, '', window.location.pathname);
+              return null;
+            }
+            return data.c;
+          }
+        } catch {
+          // Old format — plain compressed text, treat as permanent
+          return decoded;
+        }
+      }
     }
   } catch (e) {
     console.warn('Failed to load from URL:', e);
@@ -40,7 +61,7 @@ function loadFromHash() {
 function loadContent() {
   const fromHash = loadFromHash();
   if (fromHash) {
-    window.history.replaceState(null, '', window.location.pathname);
+    // Keep the URL hash intact so the user can copy/reuse it
     return fromHash;
   }
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -78,6 +99,14 @@ export function useAppState() {
   const contentRef = useRef(content);
 
   useEffect(() => { contentRef.current = content; }, [content]);
+
+  // Show toast if a shared link was expired on load
+  useEffect(() => {
+    if (_sharedLinkExpired) {
+      _sharedLinkExpired = false;
+      setTimeout(() => toast.error('This shared link has expired'), 100);
+    }
+  }, []);
 
   // Apply dark mode
   useEffect(() => {
@@ -151,9 +180,15 @@ export function useAppState() {
     saveNow();
   }, [hasUnsavedChanges, addToRecent, saveNow]);
 
-  const getShareUrl = useCallback(() => {
-    const compressed = LZString.compressToEncodedURIComponent(contentRef.current);
-    return `${window.location.origin}${window.location.pathname}#doc=${compressed}`;
+  const getShareUrl = useCallback((validityMs = null) => {
+    const payload = validityMs
+      ? JSON.stringify({ c: contentRef.current, exp: Date.now() + validityMs })
+      : JSON.stringify({ c: contentRef.current });
+    const compressed = LZString.compressToEncodedURIComponent(payload);
+    const url = `${window.location.origin}${window.location.pathname}#doc=${compressed}`;
+    // Update the current page URL hash as well
+    window.history.replaceState(null, '', `#doc=${compressed}`);
+    return url;
   }, []);
 
   return {

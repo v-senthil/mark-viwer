@@ -156,6 +156,50 @@ sequenceDiagram
 
 ---
 
+## 🌿 PlantUML Diagrams
+
+### Class Diagram
+\`\`\`plantuml
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+
+class MarkdownEditor {
+  - content: String
+  - settings: Settings
+  + render(): HTML
+  + save(): void
+}
+
+class Preview {
+  + update(html: String): void
+}
+
+class Settings {
+  + darkMode: Boolean
+  + fontSize: Number
+}
+
+MarkdownEditor --> Preview : renders
+MarkdownEditor --> Settings : uses
+@enduml
+\`\`\`
+
+### Sequence Diagram
+\`\`\`plantuml
+@startuml
+actor User
+participant "Editor" as E
+participant "Preview" as P
+
+User -> E: Types Markdown
+E -> P: Renders HTML
+P --> User: Shows output
+@enduml
+\`\`\`
+
+---
+
 ## 📌 Footnotes
 
 Here's a sentence with a footnote[^1] and another one[^2].

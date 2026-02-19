@@ -5,6 +5,7 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import katex from 'katex';
 import mermaid from 'mermaid';
+import plantumlEncoder from 'plantuml-encoder';
 
 // Initialize mermaid
 mermaid.initialize({
@@ -18,11 +19,20 @@ mermaid.initialize({
 function createRenderer() {
   const renderer = new marked.Renderer();
 
-  // Code blocks with syntax highlighting & mermaid support
+  // Code blocks with syntax highlighting, mermaid & PlantUML support
   renderer.code = function (code, lang) {
     if (lang === 'mermaid') {
       const id = 'mermaid-' + Math.random().toString(36).slice(2, 10);
       return `<div class="mermaid-diagram" data-mermaid-id="${id}">${code}</div>`;
+    }
+    if (lang === 'plantuml' || lang === 'planttext' || lang === 'puml') {
+      try {
+        const encoded = plantumlEncoder.encode(code);
+        const url = `https://www.plantuml.com/plantuml/svg/${encoded}`;
+        return `<div class="plantuml-diagram"><img src="${url}" alt="PlantUML Diagram" style="max-width:100%;background:white;border-radius:8px;padding:8px" /></div>`;
+      } catch (e) {
+        return `<pre class="text-red-500 text-sm">PlantUML Error: ${e.message}</pre>`;
+      }
     }
     let highlighted;
     if (lang && hljs.getLanguage(lang)) {
@@ -115,7 +125,7 @@ export default function MarkdownPreview({ content, settings, onTOC }) {
     // Sanitize
     const clean = DOMPurify.sanitize(raw, {
       ADD_TAGS: ['foreignObject', 'desc', 'title', 'svg', 'path', 'g', 'rect', 'circle', 'line', 'polyline', 'polygon', 'text', 'tspan', 'marker', 'defs', 'clipPath', 'use', 'image', 'style'],
-      ADD_ATTR: ['xmlns', 'viewBox', 'fill', 'stroke', 'stroke-width', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'points', 'marker-end', 'marker-start', 'text-anchor', 'dominant-baseline', 'font-size', 'font-family', 'font-weight', 'fill-opacity', 'stroke-opacity', 'stroke-dasharray', 'data-mermaid-id', 'class', 'id', 'style'],
+      ADD_ATTR: ['xmlns', 'viewBox', 'fill', 'stroke', 'stroke-width', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'points', 'marker-end', 'marker-start', 'text-anchor', 'dominant-baseline', 'font-size', 'font-family', 'font-weight', 'fill-opacity', 'stroke-opacity', 'stroke-dasharray', 'data-mermaid-id', 'class', 'id', 'style', 'src', 'alt'],
       ALLOW_UNKNOWN_PROTOCOLS: true,
     });
 
@@ -176,6 +186,7 @@ export default function MarkdownPreview({ content, settings, onTOC }) {
   return (
     <div
       ref={previewRef}
+      data-scroll-target="preview"
       className={`h-full overflow-auto p-6 ${previewThemeClass} ${
         settings.darkMode ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'
       }`}

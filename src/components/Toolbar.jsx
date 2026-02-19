@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import {
   Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
   Quote, Code, FileCode, Link, Image, Table2,
-  ListOrdered, List, CheckSquare, Minus, GitBranch, Sigma,
+  ListOrdered, List, CheckSquare, Minus, GitBranch, Sigma, Workflow,
 } from 'lucide-react';
 
 function Btn({ icon: Icon, label, onClick, darkMode }) {
@@ -69,6 +69,7 @@ export default function Toolbar({ editorRef, darkMode }) {
     { I: Minus, l: 'Horizontal Rule', a: () => apply('insert', { text: '\n---\n' }) },
     'sep',
     { I: GitBranch, l: 'Mermaid Diagram', a: () => apply('insert', { text: '```mermaid\ngraph TD\n    A --> B\n```\n', cursor: 19 }) },
+    { I: Workflow, l: 'PlantUML Diagram', a: () => apply('insert', { text: '```plantuml\n@startuml\nAlice -> Bob: Hello\nBob --> Alice: Hi\n@enduml\n```\n', cursor: 12 }) },
     { I: Sigma, l: 'Math (KaTeX)', a: () => apply('insert', { text: '$$\nE = mc^2\n$$', cursor: 3 }) },
   ];
 
