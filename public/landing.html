@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown Is More Powerful Than You Think — And MarkViewer Proves It</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0e0e0e;
+    --paper: #f5f0e8;
+    --accent: #c8401a;
+    --muted: #6b6560;
+    --light: #ede8df;
+    --code-bg: #1a1714;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 18px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .hero::before {
+    content: '#';
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(200px, 40vw, 600px);
+    color: rgba(255,255,255,0.03);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  .hero-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.2s forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 10vw, 9rem);
+    color: #fff;
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    max-width: 900px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    color: #aaa;
+    margin-top: 1.5rem;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-cta {
+    margin-top: 3rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    padding: 0.9rem 2.2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.03em;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(200,64,26,0.4); }
+
+  .btn-outline {
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    padding: 0.9rem 2.2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background 0.2s;
+  }
+  .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* CONTENT */
+  article {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+
+  .drop-cap::first-letter {
+    font-family: 'Bebas Neue', sans-serif;
+    float: left;
+    font-size: 5.5rem;
+    line-height: 0.75;
+    margin-right: 0.12em;
+    margin-top: 0.08em;
+    color: var(--accent);
+  }
+
+  h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    letter-spacing: 0.03em;
+    color: var(--ink);
+    margin: 3.5rem 0 1.2rem;
+    line-height: 1;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin: 2rem 0 0.8rem;
+    color: var(--ink);
+  }
+
+  p {
+    margin-bottom: 1.4rem;
+    color: #2a2520;
+  }
+
+  strong { color: var(--ink); font-weight: 600; }
+
+  /* PULL QUOTE */
+  .pull-quote {
+    border-left: 4px solid var(--accent);
+    margin: 3rem 0;
+    padding: 1.5rem 2rem;
+    background: var(--light);
+    border-radius: 0 8px 8px 0;
+  }
+  .pull-quote p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.5;
+  }
+  .pull-quote cite {
+    display: block;
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-style: normal;
+  }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 10px;
+    padding: 1.8rem;
+    margin: 2rem 0;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block::before {
+    content: attr(data-label);
+    position: absolute;
+    top: 0.7rem;
+    right: 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #666;
+  }
+  .code-block code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: #c8bfb0;
+    display: block;
+    white-space: pre;
+  }
+  .code-block .kw { color: #c8401a; }
+  .code-block .str { color: #a8cc6e; }
+  .code-block .cm { color: #666; }
+
+  /* STATS BAND */
+  .stats-band {
+    background: var(--ink);
+    color: #fff;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .stat-item {}
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+    margin-top: 0.5rem;
+  }
+
+  /* FEATURE CARDS */
+  .features {
+    background: var(--light);
+    padding: 5rem 2rem;
+  }
+  .features-inner { max-width: 900px; margin: 0 auto; }
+  .features h2 { text-align: center; }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid rgba(0,0,0,0.07);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+  .card-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  .card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.6rem;
+  }
+  .card p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* FINAL CTA */
+  .final-cta {
+    background: var(--accent);
+    padding: 6rem 2rem;
+    text-align: center;
+  }
+  .final-cta h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    color: #fff;
+    margin: 0 0 1rem;
+    letter-spacing: 0.03em;
+  }
+  .final-cta p {
+    color: rgba(255,255,255,0.85);
+    font-size: 1.1rem;
+    max-width: 500px;
+    margin: 0 auto 2.5rem;
+  }
+  .btn-white {
+    background: #fff;
+    color: var(--accent);
+    padding: 1rem 2.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    display: inline-block;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-white:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    color: #555;
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* DIVIDER */
+  .section-rule {
+    border: none;
+    border-top: 1px solid rgba(0,0,0,0.12);
+    margin: 3rem 0;
+  }
+
+  .highlight {
+    background: linear-gradient(120deg, rgba(200,64,26,0.15) 0%, rgba(200,64,26,0.0) 100%);
+    padding: 0.1em 0.2em;
+    border-radius: 3px;
+  }
+
+  /* AI SECTION */
+  .ai-band {
+    background: linear-gradient(135deg, #0a0f1a 0%, #0e1a2e 50%, #0a0f1a 100%);
+    padding: 6rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-band::before {
+    content: 'AI';
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(150px, 30vw, 450px);
+    color: rgba(99,179,237,0.04);
+    top: 50%;
+    right: -2%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    line-height: 1;
+  }
+  .ai-band-inner { max-width: 900px; margin: 0 auto; }
+  .ai-tag {
+    display: inline-block;
+    background: rgba(99,179,237,0.15);
+    border: 1px solid rgba(99,179,237,0.3);
+    color: #63b3ed;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+  }
+  .ai-band h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    color: #fff;
+    letter-spacing: 0.03em;
+    line-height: 0.95;
+    margin: 0 0 1.5rem;
+  }
+  .ai-band h2 span { color: #63b3ed; }
+  .ai-band p { color: #94a3b8; margin-bottom: 1.4rem; }
+  .ai-band strong { color: #e2e8f0; }
+  .ai-band .pull-quote {
+    background: rgba(99,179,237,0.07);
+    border-left-color: #63b3ed;
+  }
+  .ai-band .pull-quote p { color: #e2e8f0; }
+  .ai-band .pull-quote cite { color: #64748b; }
+  .ai-band h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: #e2e8f0;
+    margin: 2.5rem 0 0.8rem;
+  }
+  .ai-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .ai-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(99,179,237,0.2);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: border-color 0.3s, transform 0.2s, box-shadow 0.2s;
+  }
+  .ai-card:hover {
+    border-color: rgba(99,179,237,0.5);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(99,179,237,0.1);
+  }
+  .ai-card .card-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .ai-card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    color: #63b3ed;
+    margin: 0 0 0.6rem;
+  }
+  .ai-card p { font-size: 0.9rem; color: #94a3b8; margin: 0; line-height: 1.6; }
+  .ai-code {
+    background: #060d18;
+    border: 1px solid rgba(99,179,237,0.15);
+    border-radius: 10px;
+    padding: 1.8rem;
+    margin: 2rem 0;
+    overflow-x: auto;
+    position: relative;
+  }
+  .ai-code::before {
+    content: attr(data-label);
+    position: absolute;
+    top: 0.7rem;
+    right: 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #2d5a8a;
+  }
+  .ai-code code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    display: block;
+    white-space: pre;
+    line-height: 1.7;
+  }
+  .ai-code .kw { color: #63b3ed; }
+  .ai-code .str { color: #68d391; }
+  .ai-code .cm { color: #374151; }
+  .ai-code .hl { color: #f6ad55; }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div>
+    <p class="hero-label">The Plain-Text Revolution</p>
+    <h1>Markdown Is <span>More Powerful</span> Than You Think</h1>
+    <p class="hero-sub">And a blazing-fast, real-time viewer just proved it — no install, no friction, pure flow.</p>
+    <div class="hero-cta">
+      <a href="./" class="btn-primary">Try MarkViewer Free →</a>
+      <a href="#article" class="btn-outline">Read the Story</a>
+    </div>
+  </div>
+</header>
+
+<!-- ARTICLE -->
+<article id="article">
+
+  <p class="drop-cap reveal">There is a kind of quiet power in simplicity. The kind that doesn't announce itself with flashy UI, subscription popups, or a dozen toolbar buttons you'll never touch. It just <em>works</em> — instantly, elegantly, and without asking anything of you. That is the power of Markdown. And that is exactly what <strong>MarkViewer</strong> gives you.</p>
+
+  <p class="reveal">In a world bloated with writing tools that demand accounts, licenses, and loading screens, Markdown remains the great equalizer — a syntax so clean you can read it raw, yet so expressive it powers documentation for some of the world's largest software projects, billion-dollar blogs, and the entire GitHub ecosystem.</p>
+
+  <h2 class="reveal">What Is Markdown, Really?</h2>
+
+  <p class="reveal">Markdown was invented by John Gruber in 2004 with a single radical idea: <strong>writing for the web shouldn't require knowing HTML.</strong> You shouldn't need to type <code>&lt;h1&gt;</code> to make a heading. A <code>#</code> should do the job. You shouldn't wrap text in <code>&lt;strong&gt;</code> to bold it. Two asterisks on each side is enough.</p>
+
+  <p class="reveal">Two decades later, that idea has become the backbone of the modern web's writing layer. GitHub README files, Stack Overflow answers, Reddit posts, Notion pages, VS Code documentation, Discord messages — Markdown is <em>everywhere</em>.</p>
+
+  <div class="pull-quote reveal">
+    <p>"Markdown is not just a syntax. It's a philosophy: focus on content, not formatting. Think, don't click."</p>
+    <cite>The Case for Plain Text Writing</cite>
+  </div>
+
+  <h2 class="reveal">The Syntax That Disappears</h2>
+
+  <p class="reveal">The hallmark of great design is that it becomes invisible. Markdown achieves this in writing. Look at this snippet:</p>
+
+  <div class="code-block reveal" data-label="Markdown">
+    <code><span class="kw"># My Project</span>
+
+<span class="cm">## Overview</span>
+This tool does **one thing** and does it *brilliantly*.
+
+<span class="cm">## Features</span>
+- Real-time preview
+- Zero configuration  
+- Works everywhere
+
+<span class="str">> "The best tool is the one that stays out of your way."</span></code>
+  </div>
+
+  <p class="reveal">No menus. No mouse. No distraction. Just thought translated directly into structured, beautiful text. When you paste this into a Markdown renderer, it becomes a polished, readable document instantly. That's the magic — the syntax never gets in the way of the <em>thinking</em>.</p>
+
+  <hr class="section-rule">
+
+  <h2 class="reveal">Why Every Developer, Writer & Creator Needs a Fast Viewer</h2>
+
+  <p class="reveal">Here's the dirty secret of Markdown: <strong>you can write it anywhere, but previewing it used to be a pain.</strong> You'd need an IDE, a plugin, or a clunky online tool that takes five seconds to load and then asks you to sign up for a newsletter.</p>
+
+  <p class="reveal">This is exactly the gap that <a href="./" style="color: var(--accent); font-weight: 500;">MarkViewer</a> fills. Built by developer <strong>V. Senthil</strong>, MarkViewer is a real-time Markdown editor and previewer that lives entirely in your browser — no installs, no accounts, no nonsense.</p>
+
+  <p class="reveal">You open it. You type. It renders. <span class="highlight">That's it.</span></p>
+
+  <h3 class="reveal">The Philosophy Behind It</h3>
+
+  <p class="reveal">Every great tool begins with a frustration. Senthil's frustration was the same one every developer has had: needing a quick Markdown preview and losing minutes to setup friction. MarkViewer is the antidote — a tool that respects your time and trusts your intelligence.</p>
+
+  <p class="reveal">It doesn't try to be a full writing suite. It doesn't have 47 export options or a built-in AI assistant. It is a precise, purposeful instrument for one job: <strong>show me what my Markdown looks like, right now.</strong></p>
+
+</article>
+
+<!-- STATS -->
+<section class="stats-band">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <span class="stat-num">100%</span>
+      <p class="stat-label">Browser-based — No Install</p>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num">0ms</span>
+      <p class="stat-label">Signup Friction</p>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num">∞</span>
+      <p class="stat-label">Use Cases Unlocked</p>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num">1</span>
+      <p class="stat-label">Focused, Brilliant Tool</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-inner">
+    <h2 class="reveal">Why MarkViewer Stands Out</h2>
+    <div class="cards">
+      <div class="card reveal">
+        <div class="card-icon">⚡</div>
+        <h3>Instant Preview</h3>
+        <p>See your formatted output in real time as you type — zero lag, zero delay.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon">🌐</div>
+        <h3>Zero Setup</h3>
+        <p>No downloads. No extensions. Just open the URL and start writing immediately.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon">🎯</div>
+        <h3>Distraction-Free</h3>
+        <p>No ads, no popups, no forced accounts. Just you and your Markdown.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon">📦</div>
+        <h3>Fully Open</h3>
+        <p>Built in the open. Use it, share it, learn from it — a tool for the community.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon">🖋️</div>
+        <h3>Clean Rendering</h3>
+        <p>Beautiful, readable output that respects Markdown's philosophy of clean structure.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon">🚀</div>
+        <h3>Built with Purpose</h3>
+        <p>A solo developer solving a real problem — every decision made with intention.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECOND ARTICLE SECTION -->
+<article>
+  <h2 class="reveal">Markdown's Superpower: It Ages Like Fine Wine</h2>
+
+  <p class="reveal">Software tools come and go. Editors rise to dominance and fade into obsolescence. But a Markdown file you wrote in 2010 opens perfectly today in any editor, any viewer, any system. That's the promise of plain text — <strong>radical longevity.</strong></p>
+
+  <p class="reveal">Compare that to a Word document from 2003. A Google Doc from a deprecated format. A Notion export that doesn't quite look right elsewhere. Markdown outlasts them all because it carries no proprietary baggage. It's just text, and text is forever.</p>
+
+  <div class="pull-quote reveal">
+    <p>"A Markdown file you write today will be perfectly readable in 2050. Your Word document? Good luck."</p>
+    <cite>Plain Text Permanence</cite>
+  </div>
+
+  <h2 class="reveal">Who Is MarkViewer For?</h2>
+
+  <p class="reveal"><strong>Developers</strong> who want to quickly sanity-check a README before pushing to GitHub. <strong>Technical writers</strong> who draft documentation and need instant visual feedback. <strong>Students</strong> writing notes in Markdown and wanting a clean output. <strong>Bloggers</strong> who write in Markdown before pasting into their CMS. <strong>Anyone</strong> who's ever typed two asterisks and wondered "wait, is this going to render?"</p>
+
+  <p class="reveal">In other words, MarkViewer is for people who value their time and appreciate tools that don't get in the way.</p>
+
+  <h2 class="reveal">The Quiet Revolution You Should Join</h2>
+
+  <p class="reveal">We've grown so accustomed to complexity that simplicity feels radical. A tool that does exactly one thing and does it perfectly is almost subversive. MarkViewer is part of a quiet revolution in software: <strong>purposeful tools built by developers who are scratching their own itch</strong>, sharing it openly, and proving that the best software doesn't always come from a VC-backed startup.</p>
+
+  <p class="reveal">It comes from someone who sat down, saw a gap, and built the thing they wished existed.</p>
+
+  <p class="reveal">That deserves recognition. That deserves your vote. That deserves to be shared with every developer, writer, and creator in your network.</p>
+
+</article>
+
+<!-- AI SECTION -->
+<section class="ai-band">
+  <div class="ai-band-inner">
+
+    <p class="ai-tag reveal">🤖 Markdown × Artificial Intelligence</p>
+    <h2 class="reveal">The Secret Fuel Behind <span>AI Agents</span> & Skills</h2>
+
+    <p class="reveal">You've heard about LLMs. You've used ChatGPT, Claude, Gemini. But here's what most people don't realize: <strong>Markdown is the invisible lingua franca of the entire AI ecosystem.</strong> Nearly every system prompt, every AI skill definition, every agent instruction set — it's all written in Markdown. And MarkViewer is the fastest way to see it rendered, clearly.</p>
+
+    <div class="pull-quote reveal">
+      <p>"When you talk to an AI agent, you're often talking to a machine reading beautifully structured Markdown. The format shapes the mind."</p>
+      <cite>Prompt Engineering Fundamentals</cite>
+    </div>
+
+    <h3 class="reveal">How LLMs Consume Markdown</h3>
+
+    <p class="reveal">Large Language Models like GPT-4, Claude, and Gemini are trained on billions of pages of text — and a staggering proportion of that text is Markdown. GitHub repositories, developer docs, technical wikis, README files — <strong>Markdown is the native language of the data that trained modern AI.</strong> This means that when you write well-structured Markdown, AI models understand it better, parse it more accurately, and respond to it with greater precision.</p>
+
+    <p class="reveal">This isn't a coincidence. Markdown's clean hierarchy — headings, lists, code blocks, bold emphasis — maps almost perfectly to how language models internally represent structure. It's the format LLMs were born to read.</p>
+
+    <div class="ai-code reveal" data-label="AI System Prompt">
+      <code><span class="kw"># System Prompt: Customer Support Agent</span>
+
+<span class="cm">## Role</span>
+<span class="str">You are a helpful, friendly support agent for MarkViewer.</span>
+
+<span class="cm">## Instructions</span>
+- <span class="hl">Always greet the user</span> by name if known
+- Keep responses <span class="str">concise and clear</span>
+- If unsure, say: <span class="str">"Let me find out for you"</span>
+
+<span class="cm">## Tone</span>
+> Warm, professional, never robotic.
+
+<span class="cm">## Out of Scope</span>
+Redirect billing issues to <span class="hl">support@example.com</span></code>
+    </div>
+
+    <p class="reveal">See that? That's a real AI system prompt. It's pure Markdown. And when an AI agent reads it, it understands the hierarchy, the emphasis, the constraints — just like a human reader would. <strong>Markdown makes AI agents smarter</strong> by giving them structure they can reason about.</p>
+
+    <h3 class="reveal">AI Skills Are Written in Markdown</h3>
+
+    <p class="reveal">In modern AI frameworks — from LangChain to AutoGen to Claude's tool-use system — <strong>"skills" are structured capability definitions</strong> that tell AI agents what they can do and how to do it. These skill documents are almost universally authored in Markdown. Headers define the skill name. Lists define steps. Code blocks define examples. The entire cognitive architecture of an AI agent lives inside structured Markdown files.</p>
+
+    <p class="reveal">When you author an AI skill, you're essentially writing a Markdown document that becomes the agent's mind for that task. The clarity, structure, and precision of your Markdown directly determines how well your AI agent performs. <span class="highlight" style="background: rgba(99,179,237,0.15); padding: 0.1em 0.3em; border-radius: 3px; color: #63b3ed;">Garbage Markdown = garbage agent behavior. Crystal-clear Markdown = a powerful, predictable AI skill.</span></p>
+
+    <div class="ai-code reveal" data-label="AI Skill Definition">
+      <code><span class="kw"># Skill: Web Research Agent</span>
+
+<span class="cm">## Description</span>
+<span class="str">Search the web and summarize findings into structured reports.</span>
+
+<span class="cm">## Input Parameters</span>
+| Parameter | Type   | Required | Description          |
+|-----------|--------|----------|----------------------|
+| query     | string | <span class="hl">yes</span>      | Search topic         |
+| depth     | number | no       | Pages to scan (1-10) |
+
+<span class="cm">## Steps</span>
+1. Parse the **query** for key entities
+2. Run search with structured operators
+3. Summarize each result in <span class="str">&lt;100 words</span>
+4. Return a ranked Markdown report
+
+<span class="cm">## Output Format</span>
+<span class="hl">## Results</span>
+<span class="str">### [Source Title]</span>
+Summary text here...</code>
+    </div>
+
+    <h3 class="reveal">Markdown Supercharges AI Agent Workflows</h3>
+
+    <p class="reveal">Multi-agent systems — where AI agents plan, delegate, and execute tasks — rely heavily on structured communication between agents. How do agents communicate their findings, pass instructions, or report results? In Markdown. A planning agent writes a Markdown task list. An execution agent reads it, acts on each item, and returns a Markdown report. The orchestrator parses that report and decides what's next.</p>
+
+    <p class="reveal"><strong>Markdown is the protocol of the agentic web.</strong> It's not just a human writing tool — it's the message format that lets autonomous AI systems coordinate, reason, and build on each other's work with clarity and precision.</p>
+
+    <div class="ai-cards">
+      <div class="ai-card reveal">
+        <div class="card-icon">🧠</div>
+        <h3>LLM Prompt Engineering</h3>
+        <p>System prompts written in clean, structured Markdown produce dramatically better AI outputs. Headers, lists, and emphasis help models parse context with higher accuracy.</p>
+      </div>
+      <div class="ai-card reveal">
+        <div class="card-icon">🤖</div>
+        <h3>AI Agent Instructions</h3>
+        <p>Every AI agent has an instruction set — and it's almost always Markdown. Role definitions, constraints, tool descriptions, and escalation rules all live in structured `.md` files.</p>
+      </div>
+      <div class="ai-card reveal">
+        <div class="card-icon">⚙️</div>
+        <h3>Skill & Tool Definitions</h3>
+        <p>AI skills in LangChain, AutoGen, Claude, and similar frameworks use Markdown to define capabilities, parameters, and expected outputs — turning text into agent superpowers.</p>
+      </div>
+      <div class="ai-card reveal">
+        <div class="card-icon">🔗</div>
+        <h3>Agent-to-Agent Communication</h3>
+        <p>In multi-agent pipelines, Markdown is the handoff format. Agents pass structured reports, plans, and findings between each other using Markdown's natural hierarchy.</p>
+      </div>
+      <div class="ai-card reveal">
+        <div class="card-icon">📊</div>
+        <h3>RAG Knowledge Bases</h3>
+        <p>Retrieval-Augmented Generation systems store knowledge as Markdown documents. Well-formatted Markdown improves chunk quality, retrieval accuracy, and final answer quality.</p>
+      </div>
+      <div class="ai-card reveal">
+        <div class="card-icon">🎯</div>
+        <h3>Few-Shot Examples</h3>
+        <p>Teaching AI models new behaviors with few-shot examples? Those examples are formatted in Markdown. The cleaner the examples, the faster the model adapts.</p>
+      </div>
+    </div>
+
+    <div class="pull-quote reveal" style="margin-top: 3rem;">
+      <p>"MarkViewer isn't just for humans previewing docs. It's for AI builders previewing the prompts, skills, and instructions that power their agents — before they go live."</p>
+      <cite>The AI Builder's Workflow</cite>
+    </div>
+
+    <p class="reveal" style="margin-top: 2rem;">This is where MarkViewer becomes not just useful, but <strong>essential for the AI age.</strong> When you're writing a system prompt for your agent, you want to see it rendered — to catch missing structure, broken lists, or formatting errors before your AI acts on them. When you're authoring a skill definition or a RAG knowledge document, a clean live preview catches problems that a raw text editor never would.</p>
+
+    <p class="reveal">Paste your prompt. See it rendered. Fix it. Ship it. <strong>MarkViewer is your AI prompt debugging tool.</strong></p>
+
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <h2>Try It. Vote It. Share It.</h2>
+  <p>MarkViewer is the kind of tool the internet was built for — open, fast, and made with love. Give it a spin today.</p>
+  <a href="./" class="btn-white">Open MarkViewer →</a>
+</section>
+
+<footer>
+  <p>Built by <a href="./">V. Senthil</a> · An open-source Markdown viewer for everyone · Share and spread the word ❤️</p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
