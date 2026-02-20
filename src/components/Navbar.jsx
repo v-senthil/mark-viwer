@@ -162,7 +162,6 @@ export default function Navbar({
               <MI icon={Eye} label="Preview Only" dark={dark} active={settings.viewMode==='preview'} onClick={() => { setView('preview'); close(); }} />
               <MDivider dark={dark} />
               <MLabel dark={dark}>Panels</MLabel>
-              <MI icon={List} label="Table of Contents" dark={dark} onClick={() => { setShowTOC(v => !v); close(); }} />
               <MI icon={Presentation} label="Presentation" dark={dark} onClick={() => { setPresentationMode(true); close(); }} />
               <MDivider dark={dark} />
               <MLabel dark={dark}>Modes</MLabel>
@@ -254,6 +253,11 @@ export default function Navbar({
         </div>
 
         <div className={`hidden sm:block w-px h-4 mx-0.5 ${dark ? 'bg-[#21262d]' : 'bg-gray-200'}`} />
+
+        <button onClick={() => setShowTOC(v => !v)} title="Table of Contents"
+          className={`nav-icon-btn ${dark ? 'text-gray-500 hover:text-gray-200 hover:bg-white/[.06]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
+          <List size={15} strokeWidth={1.75} />
+        </button>
 
         <button onClick={() => setShowSettings(v => !v)} title="Settings"
           className={`nav-icon-btn ${dark ? 'text-gray-500 hover:text-gray-200 hover:bg-white/[.06]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
