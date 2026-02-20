@@ -10,7 +10,7 @@
  * - Keyboard shortcut toggle (Ctrl/Cmd + .)
  */
 
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   X, Zap, Pencil, FileText, CheckCircle, Scissors, Maximize2,
   List, HelpCircle, MessageSquare, Square, GripHorizontal,
@@ -33,7 +33,7 @@ const ACTION_ICONS = {
   custom: MessageSquare,
 };
 
-export default function AIWidget({
+function AIWidgetComponent({
   darkMode: dark,
   onClose,
   content,
@@ -68,6 +68,8 @@ export default function AIWidget({
   const widgetRef = useRef(null);
   const clientRef = useRef(null);
   const responseRef = useRef(null);
+  const lastUpdateRef = useRef(0);
+  const pendingResponseRef = useRef('');
 
   // Save position to localStorage
   useEffect(() => {
@@ -82,8 +84,9 @@ export default function AIWidget({
   }, [response, isStreaming]);
 
   // Get the text to process
-  const textToProcess = selectedText?.trim() || content;
-  const hasSelection = !!selectedText?.trim();
+  const hasSelection = useMemo(() => !!selectedText?.trim(), [selectedText]);
+  const textToProcess = useMemo(() => selectedText?.trim() || content, [selectedText, content]);
+  const selectionLength = useMemo(() => hasSelection ? selectedText.trim().length : 0, [hasSelection, selectedText]);
 
   // Check if AI is configured
   const isConfigured = () => {
@@ -152,6 +155,8 @@ export default function AIWidget({
     setError(null);
     setIsStreaming(true);
     setShowQuickActions(false);
+    pendingResponseRef.current = '';
+    lastUpdateRef.current = 0;
 
     const client = getAIClient();
     clientRef.current = client;
@@ -159,9 +164,17 @@ export default function AIWidget({
     const options = {
       customPrompt,
       onChunk: (chunk, full) => {
-        setResponse(full);
+        // Debounce updates to reduce lag - update every 50ms max
+        pendingResponseRef.current = full;
+        const now = Date.now();
+        if (now - lastUpdateRef.current > 50) {
+          lastUpdateRef.current = now;
+          setResponse(full);
+        }
       },
       onComplete: () => {
+        // Ensure final response is set
+        setResponse(pendingResponseRef.current);
         setIsStreaming(false);
       },
       onError: (err) => {
@@ -240,12 +253,6 @@ export default function AIWidget({
           <span className={`text-xs font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>
             AI Widget
           </span>
-          {hasSelection && (
-            <span className={`text-[10px] px-1.5 py-0.5 rounded
-              ${dark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-              Selection
-            </span>
-          )}
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -268,6 +275,19 @@ export default function AIWidget({
       {/* Content - Collapsible */}
       {!isMinimized && (
         <div className="p-3 space-y-3">
+          {/* Selection/Document Info */}
+          <div className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px]
+            ${hasSelection 
+              ? (dark ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30' : 'bg-blue-50 text-blue-600 border border-blue-200')
+              : (dark ? 'bg-gray-800/50 text-gray-400 border border-gray-700' : 'bg-gray-50 text-gray-500 border border-gray-200')}`}>
+            <FileText size={11} className="flex-shrink-0" />
+            {hasSelection ? (
+              <span>Working on <strong>selected text</strong> ({selectionLength} chars)</span>
+            ) : (
+              <span>Working on <strong>entire document</strong> ({content?.length || 0} chars)</span>
+            )}
+          </div>
+
           {/* Quick Actions Dropdown */}
           <div>
             <button
@@ -475,3 +495,7 @@ export default function AIWidget({
     </div>
   );
 }
+
+// Memoize the component for performance
+const AIWidget = memo(AIWidgetComponent);
+export default AIWidget;

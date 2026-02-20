@@ -99,6 +99,45 @@ export async function fetchOllamaModels(endpoint = 'http://localhost:11434') {
   }
 }
 
+/**
+ * Fetch available Google AI (Gemini) models
+ * @param {string} apiKey - Google AI API key
+ * @returns {Promise<Array<{id: string, name: string, description?: string}>>}
+ */
+export async function fetchGeminiModels(apiKey) {
+  if (!apiKey) {
+    console.warn('API key required to fetch Gemini models');
+    return [];
+  }
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models`,
+      {
+        method: 'GET',
+        headers: {
+          'x-goog-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (!response.ok) throw new Error('Failed to fetch Gemini models');
+    const data = await response.json();
+    // Filter to only models that support generateContent
+    return (data.models || [])
+      .filter(m => m.supportedGenerationMethods?.includes('generateContent'))
+      .map(m => ({
+        id: m.name.replace('models/', ''),
+        name: m.displayName || m.name.replace('models/', ''),
+        description: m.description,
+        inputTokenLimit: m.inputTokenLimit,
+        outputTokenLimit: m.outputTokenLimit,
+      }));
+  } catch (error) {
+    console.warn('Failed to fetch Gemini models:', error);
+    return [];
+  }
+}
+
 // Prompt templates for AI actions
 export const PROMPT_TEMPLATES = {
   continue: {
@@ -336,7 +375,8 @@ function buildHeaders(provider, apiKey) {
 
   switch (provider) {
     case 'google':
-      // Google AI uses API key in URL, not header
+      // Google AI uses API key in header
+      headers['x-goog-api-key'] = apiKey;
       break;
     
     case 'openai':
@@ -358,9 +398,9 @@ function buildHeaders(provider, apiKey) {
 function getEndpoint(provider, settings) {
   switch (provider) {
     case 'google':
-      // Google AI endpoint includes model and API key
+      // Google AI endpoint: API key in header, model in URL
       const model = settings.model || 'gemini-2.0-flash';
-      return `${PROVIDERS.google.endpoint}/${model}:streamGenerateContent?alt=sse&key=${settings.apiKey}`;
+      return `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
     
     case 'ollama':
       return `${settings.ollamaEndpoint || 'http://localhost:11434'}/api/chat`;

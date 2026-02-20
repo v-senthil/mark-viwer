@@ -17,7 +17,7 @@ import {
 import {
   loadAISettings, saveAISettings, maskApiKey,
   PROVIDERS, DEFAULT_AI_SETTINGS, getAIClient, resetAIClient,
-  fetchOllamaModels
+  fetchOllamaModels, fetchGeminiModels
 } from '../lib/aiClient';
 
 // Individual input components for clean UI
@@ -35,13 +35,13 @@ function FormSection({ title, children, dark }) {
 
 function SelectInput({ label, value, options, onChange, dark, disabled }) {
   return (
-    <div className="flex items-center justify-between">
-      <span className={`text-[13px] ${dark ? 'text-gray-300' : 'text-gray-700'}`}>{label}</span>
+    <div className="flex items-center justify-between gap-3">
+      <span className={`text-[13px] flex-shrink-0 ${dark ? 'text-gray-300' : 'text-gray-700'}`}>{label}</span>
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
         disabled={disabled}
-        className={`text-[13px] px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer transition-colors
+        className={`text-[13px] px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer transition-colors max-w-[200px] truncate
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           ${dark ? 'bg-[#21262d] border-[#30363d] text-white' : 'bg-white border-gray-200 text-gray-900'}`}
       >
@@ -143,6 +143,7 @@ export default function AISettings({ darkMode: dark, onClose }) {
   const [testMessage, setTestMessage] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [ollamaModels, setOllamaModels] = useState([]);
+  const [geminiModels, setGeminiModels] = useState([]);
   const [loadingModels, setLoadingModels] = useState(false);
 
   const provider = PROVIDERS[settings.provider];
@@ -161,6 +162,21 @@ export default function AISettings({ darkMode: dark, onClose }) {
       });
     }
   }, [settings.provider, settings.ollamaEndpoint]);
+
+  // Fetch Gemini models when provider is google and API key is set
+  useEffect(() => {
+    if (settings.provider === 'google' && settings.apiKey) {
+      setLoadingModels(true);
+      fetchGeminiModels(settings.apiKey).then(models => {
+        setGeminiModels(models);
+        setLoadingModels(false);
+        // Auto-select first model if current selection not in list
+        if (models.length > 0 && !models.find(m => m.id === settings.model)) {
+          setSettings(prev => ({ ...prev, model: models[0].id }));
+        }
+      });
+    }
+  }, [settings.provider, settings.apiKey]);
 
   // Update a setting
   const updateSetting = (key, value) => {
@@ -197,6 +213,16 @@ export default function AISettings({ darkMode: dark, onClose }) {
         return ollamaModels.map(m => ({ value: m.id, label: m.name }));
       }
       return [{ value: '', label: loadingModels ? 'Loading...' : 'No models found' }];
+    }
+    if (settings.provider === 'google') {
+      if (geminiModels.length > 0) {
+        return geminiModels.map(m => ({ value: m.id, label: m.name }));
+      }
+      if (loadingModels) {
+        return [{ value: settings.model || 'gemini-2.0-flash', label: 'Loading models...' }];
+      }
+      // Fallback to static models if no API key
+      return provider?.models?.map(m => ({ value: m.id, label: m.name })) || [];
     }
     if (settings.provider === 'custom') {
       return [{ value: settings.model || 'gpt-4', label: settings.model || 'gpt-4' }];
