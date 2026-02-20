@@ -110,6 +110,8 @@ export default function MarkdownEditor({ content, onChange, settings, onStats, e
     if (externalRef) {
       externalRef.current = {
         view,
+        // Proxy state for direct access (Toolbar, App.jsx, etc.)
+        get state() { return view.state; },
         // Get currently selected text
         getSelection: () => {
           const state = view.state;

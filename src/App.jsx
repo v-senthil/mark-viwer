@@ -58,6 +58,7 @@ export default function App() {
   const editorWrapperRef = useRef(null);
   const previewWrapperRef = useRef(null);
   const [stats, setStats] = useState({ lines: 0, words: 0, chars: 0 });
+  const [capturedSelection, setCapturedSelection] = useState('');
   const [headings, setHeadings] = useState([]);
   const [splitRatio, setSplitRatio] = useState(settings.splitRatio || 50);
   const [isResizing, setIsResizing] = useState(false);
@@ -134,6 +135,14 @@ export default function App() {
       // Ctrl+. : Toggle AI Widget
       if ((e.ctrlKey || e.metaKey) && e.key === '.') {
         e.preventDefault();
+        // Capture selection when opening
+        const editor = editorRef.current;
+        if (editor) {
+          const selected = editor.getSelection?.() || '';
+          setCapturedSelection(selected);
+        } else {
+          setCapturedSelection('');
+        }
         setShowAIWidget(prev => !prev);
       }
       // Ctrl+P or Cmd+K: Open command palette
@@ -244,6 +253,18 @@ export default function App() {
     : showPreview;
   const showMobileTabBar = isMobile && viewMode === 'split';
 
+  // Handler to open AI widget with captured selection
+  const handleOpenAIWidget = useCallback(() => {
+    const editor = editorRef.current;
+    if (editor) {
+      const selected = editor.getSelection?.() || '';
+      setCapturedSelection(selected);
+    } else {
+      setCapturedSelection('');
+    }
+    setShowAIWidget(prev => !prev);
+  }, [setShowAIWidget]);
+
   return (
     <div className={`h-full flex flex-col ${dark ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'} ${
       focusMode ? 'focus-mode' : ''
@@ -267,7 +288,7 @@ export default function App() {
         setShowRecentDocs={setShowRecentDocs}
         setPresentationMode={setPresentationMode}
         setShowAIPanel={setShowAIPanel}
-        setShowAIWidget={setShowAIWidget}
+        onOpenAIWidget={handleOpenAIWidget}
         showAIWidget={showAIWidget}
         setShowAnalytics={setShowAnalytics}
         setShowThemes={setShowThemes}
@@ -419,10 +440,7 @@ export default function App() {
           darkMode={dark}
           onClose={() => setShowAIWidget(false)}
           content={content}
-          selectedText={editorRef.current?.state?.sliceDoc(
-            editorRef.current?.state?.selection?.main?.from,
-            editorRef.current?.state?.selection?.main?.to
-          )}
+          selectedText={capturedSelection}
           onInsertText={(text) => {
             const view = editorRef.current;
             if (view) {
@@ -476,7 +494,7 @@ export default function App() {
             'toggle-typewriter': () => updateSettings({ typewriterMode: !settings.typewriterMode }),
             'open-settings': () => setShowSettings(true),
             'open-ai': () => setShowAIPanel(true),
-            'open-ai-widget': () => setShowAIWidget(prev => !prev),
+            'open-ai-widget': () => handleOpenAIWidget(),
             'open-analytics': () => setShowAnalytics(true),
             'open-themes': () => setShowThemes(true),
             'open-toc': () => setShowTOC(true),

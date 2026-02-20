@@ -71,7 +71,7 @@ export default function Navbar({
   hasUnsavedChanges, lastSaved, content, setContent, addToRecent,
   setShowCheatsheet, setShowShortcuts, setShowSettings,
   setShowTOC, setShowRecentDocs, setPresentationMode,
-  setShowAIPanel, setShowAIWidget, showAIWidget, setShowAnalytics, setShowThemes,
+  setShowAIPanel, onOpenAIWidget, showAIWidget, setShowAnalytics, setShowThemes,
   isMobile,
 }) {
   const fileRef = useRef(null);
@@ -279,7 +279,7 @@ export default function Navbar({
           <Zap size={15} strokeWidth={1.75} />
         </button>
 
-        <button onClick={() => setShowAIWidget?.(v => !v)} title="AI Widget (Floating) Ctrl+."
+        <button onClick={onOpenAIWidget} title="AI Widget (Floating) Ctrl+."
           className={`nav-icon-btn ${showAIWidget
             ? dark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'
             : dark ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-500/[.12]' : 'text-blue-500 hover:text-blue-600 hover:bg-blue-50'}`}>
