@@ -10,7 +10,7 @@ import {
 const STORAGE_KEY = 'markviewer_content';
 const SETTINGS_KEY = 'markviewer_settings';
 const RECENT_KEY = 'markviewer_recent';
-const AUTOSAVE_INTERVAL = 30000;
+const AUTOSAVE_INTERVAL = 10000;
 const TABS_KEY = 'markviewer_open_tabs';
 
 const defaultSettings = {

@@ -328,12 +328,15 @@
   /* FOOTER */
   footer {
     background: var(--ink);
-    color: #555;
+    color: #aaa;
     text-align: center;
-    padding: 2rem;
-    font-size: 0.85rem;
+    padding: 2.5rem 2rem;
+    font-size: 0.9rem;
+    border-top: 1px solid #222;
+    letter-spacing: 0.01em;
   }
-  footer a { color: var(--accent); text-decoration: none; }
+  footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  footer a:hover { text-decoration: underline; }
 
   /* DIVIDER */
   .section-rule {
@@ -478,7 +481,7 @@
   <div>
     <p class="hero-label">The Plain-Text Revolution</p>
     <h1>Markdown Is <span>More Powerful</span> Than You Think</h1>
-    <p class="hero-sub">And a blazing-fast, real-time viewer just proved it — no install, no friction, pure flow.</p>
+    <p class="hero-sub">A blazing-fast Markdown IDE with workspace management, AI assistant, file tabs & real-time preview — no install, no friction.</p>
     <div class="hero-cta">
       <a href="./app" class="btn-primary">Try MarkViewer Free →</a>
       <a href="#article" class="btn-outline">Read the Story</a>
@@ -542,7 +545,7 @@ This tool does **one thing** and does it *brilliantly*.
 
   <p class="reveal">Every great tool begins with a frustration. Senthil's frustration was the same one every developer has had: needing a quick Markdown preview and losing minutes to setup friction. MarkViewer is the antidote — a tool that respects your time and trusts your intelligence.</p>
 
-  <p class="reveal">It doesn't try to be a full writing suite. It doesn't have 47 export options or a built-in AI assistant. It is a precise, purposeful instrument for one job: <strong>show me what my Markdown looks like, right now.</strong></p>
+  <p class="reveal">What started as a focused viewer has evolved into a <strong>complete Markdown IDE</strong> — with workspace management, a built-in AI assistant, multi-file tabs, a command palette, and more. Yet it never lost its soul: <strong>show me what my Markdown looks like, right now.</strong></p>
 
 </article>
 
@@ -554,16 +557,16 @@ This tool does **one thing** and does it *brilliantly*.
       <p class="stat-label">Browser-based — No Install</p>
     </div>
     <div class="stat-item reveal">
-      <span class="stat-num">0ms</span>
-      <p class="stat-label">Signup Friction</p>
+      <span class="stat-num">3</span>
+      <p class="stat-label">AI Providers Built In</p>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num">OPFS</span>
+      <p class="stat-label">Persistent File System</p>
     </div>
     <div class="stat-item reveal">
       <span class="stat-num">∞</span>
-      <p class="stat-label">Use Cases Unlocked</p>
-    </div>
-    <div class="stat-item reveal">
-      <span class="stat-num">1</span>
-      <p class="stat-label">Focused, Brilliant Tool</p>
+      <p class="stat-label">Workspaces & Files</p>
     </div>
   </div>
 </section>
@@ -589,19 +592,34 @@ This tool does **one thing** and does it *brilliantly*.
         <p>No ads, no popups, no forced accounts. Just you and your Markdown.</p>
       </div>
       <div class="card reveal">
-        <div class="card-icon">📦</div>
-        <h3>Fully Open</h3>
-        <p>Built in the open. Use it, share it, learn from it — a tool for the community.</p>
+        <div class="card-icon">📂</div>
+        <h3>Workspace Manager</h3>
+        <p>OPFS-powered file system with sidebar file tree, workspace selector, folders, search & bulk operations.</p>
       </div>
       <div class="card reveal">
-        <div class="card-icon">🖋️</div>
-        <h3>Clean Rendering</h3>
-        <p>Beautiful, readable output that respects Markdown's philosophy of clean structure.</p>
+        <div class="card-icon">🤖</div>
+        <h3>AI Assistant</h3>
+        <p>Built-in AI widget supporting OpenAI, Google Gemini & Ollama — summarize, rewrite, explain or generate content inline.</p>
       </div>
       <div class="card reveal">
-        <div class="card-icon">🚀</div>
-        <h3>Built with Purpose</h3>
-        <p>A solo developer solving a real problem — every decision made with intention.</p>
+        <div class="card-icon">📑</div>
+        <h3>File Tabs</h3>
+        <p>Edit multiple files with draggable tabs, unsaved indicators, auto-save & instant switching.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon">⌘</div>
+        <h3>Command Palette</h3>
+        <p>Ctrl+P quick-access to every command, setting, and file — VS Code-style productivity in the browser.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon">🎨</div>
+        <h3>Theme Manager</h3>
+        <p>Curated theme presets for editor and preview. Switch between GitHub, Dracula, Nord & more with one click.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon">📊</div>
+        <h3>Document Analytics</h3>
+        <p>Word count, reading time, character stats, heading structure & readability metrics — all in a live dashboard.</p>
       </div>
     </div>
   </div>
@@ -614,7 +632,45 @@ This tool does **one thing** and does it *brilliantly*.
     <h2 class="reveal">Everything You Need.<br><span style="color: var(--accent);">Nothing You Don't.</span></h2>
     <p class="reveal">MarkViewer isn't just a preview tool — it's a full-featured Markdown workstation packed with capabilities that rival desktop apps. Here's what's built in:</p>
 
-    <h3 class="reveal" style="color: #e2e8f0; margin-top: 2.5rem;">🔗 Public Share URLs with Expiry</h3>
+    <h3 class="reveal" style="color: #e2e8f0; margin-top: 2.5rem;">📂 Workspace Management — Your Files, In the Browser</h3>
+    <p class="reveal">MarkViewer features a full <strong style="color: #e2e8f0;">workspace file system</strong> powered by the Origin Private File System (OPFS) with a localStorage fallback. Create multiple workspaces, organize files into folders, and switch between them instantly — all persisted directly in your browser with zero cloud dependency.</p>
+    <p class="reveal">The <strong style="color: #e2e8f0;">left sidebar</strong> gives you a VS Code-style file tree with pinned files, folder expand/collapse, inline rename, context menus, and full-text search across every file in your workspace. Bulk-select files for mass operations. Import/export entire workspaces as JSON backups.</p>
+
+    <div class="ai-code reveal" data-label="Workspace Features" style="border-color: rgba(200,64,26,0.2);">
+      <code><span class="cm">// OPFS-powered persistent storage</span>
+<span class="kw">Sidebar</span>        → File tree with folders, pinned section, search
+<span class="kw">Workspaces</span>     → Create, switch, delete named workspaces
+<span class="kw">File Tabs</span>      → Multi-file editing with <span class="hl">drag-to-reorder</span>
+<span class="kw">Unsaved Dot</span>    → Amber indicator on tabs with pending changes
+<span class="kw">Auto-Save</span>      → 30s interval saves to OPFS + localStorage
+<span class="kw">Bulk Ops</span>       → Select multiple files → delete / move
+<span class="kw">Import/Export</span>  → Backup workspaces as <span class="str">JSON</span>
+<span class="kw">Toggle</span>         → <span class="hl">⌘B</span> to show/hide sidebar</code>
+    </div>
+
+    <h3 class="reveal" style="color: #e2e8f0;">🤖 Built-In AI Assistant</h3>
+    <p class="reveal">MarkViewer ships with a <strong style="color: #e2e8f0;">floating AI widget</strong> that works directly inside your editor. Press <code style="color: var(--accent);">Ctrl+.</code> to summon it. Select text and the AI operates on your selection; leave nothing selected and it works on the entire document.</p>
+    <p class="reveal">Three AI providers are supported out of the box: <strong style="color: #e2e8f0;">OpenAI</strong> (GPT-4o, GPT-4, etc.), <strong style="color: #e2e8f0;">Google Gemini</strong> (models fetched dynamically from the API), and <strong style="color: #e2e8f0;">Ollama</strong> (local models auto-detected from your running instance). Responses stream in real-time with Markdown rendering, and you can insert or replace text directly from the widget.</p>
+
+    <div class="ai-code reveal" data-label="AI Widget" style="border-color: rgba(200,64,26,0.2);">
+      <code><span class="cm">// Three providers, one seamless interface</span>
+<span class="kw">OpenAI</span>    → GPT-4o, GPT-4, GPT-3.5 — <span class="str">streaming responses</span>
+<span class="kw">Gemini</span>    → Dynamic model list via <span class="hl">x-goog-api-key</span>
+<span class="kw">Ollama</span>    → Auto-detect local models from <span class="str">/api/tags</span>
+
+<span class="cm">// Built-in actions</span>
+<span class="hl">Summarize</span> · <span class="hl">Rewrite</span> · <span class="hl">Explain</span> · <span class="hl">Fix Grammar</span>
+<span class="hl">Expand</span> · <span class="hl">Simplify</span> · <span class="hl">Translate</span> · <span class="hl">Custom prompt</span>
+
+<span class="cm">// Context-aware</span>
+Select text → AI works on <span class="str">selection</span>
+No selection → AI works on <span class="str">entire document</span></code>
+    </div>
+
+    <h3 class="reveal" style="color: #e2e8f0;">⌘ Command Palette & Keyboard-First Design</h3>
+    <p class="reveal">Press <code style="color: var(--accent);">Ctrl+P</code> or <code style="color: var(--accent);">⌘K</code> to open the <strong style="color: #e2e8f0;">command palette</strong> — a fuzzy-search menu that gives instant access to every command, view toggle, file action, and setting. Navigate to any line with <code style="color: var(--accent);">:42</code> syntax. Every feature in MarkViewer has a keyboard shortcut — from toggling dark mode (<code style="color: var(--accent);">⌘⇧K</code>) to opening the AI widget (<code style="color: var(--accent);">Ctrl+.</code>) to saving (<code style="color: var(--accent);">⌘S</code>).</p>
+
+    <h3 class="reveal" style="color: #e2e8f0; margin-top: 2.5rem;">�🔗 Public Share URLs with Expiry</h3>
     <p class="reveal">Generate a <strong style="color: #e2e8f0;">shareable public URL</strong> for any document — your entire Markdown content gets LZ-compressed and embedded directly into the URL. No server, no database, no account needed. Paste the link in any browser and it renders instantly.</p>
     <p class="reveal">Choose a validity: <strong style="color: #e2e8f0;">Permanent</strong>, <strong style="color: #e2e8f0;">1 Hour</strong>, <strong style="color: #e2e8f0;">1 Day</strong>, <strong style="color: #e2e8f0;">1 Week</strong>, or <strong style="color: #e2e8f0;">30 Days</strong>. Expired links are automatically rejected with a clear toast notification. The URL stays in the address bar so you can bookmark and reuse it.</p>
 
@@ -706,12 +762,37 @@ P <span class="str">--></span> User: Shows output
       <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
         <div class="card-icon">📚</div>
         <h3 style="color: var(--accent);">TOC & Recent Docs</h3>
-        <p>Auto-generated Table of Contents from your headings with click-to-navigate. Recent Documents panel keeps your last 5 documents a click away.</p>
+        <p>Auto-generated Table of Contents from your headings with click-to-navigate. Recent Documents panel keeps your last 10 documents a click away.</p>
       </div>
       <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
         <div class="card-icon">💾</div>
         <h3 style="color: var(--accent);">Autosave & Syntax</h3>
-        <p>30-second autosave to localStorage. Full syntax highlighting for 100+ languages via highlight.js. Footnote support with hover tooltips.</p>
+        <p>30-second autosave to OPFS and localStorage. Full syntax highlighting for 100+ languages via highlight.js. Footnote support with hover tooltips.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">📂</div>
+        <h3 style="color: var(--accent);">Workspace Sidebar</h3>
+        <p>VS Code-style file tree with workspace selector, folder navigation, pinned files, search, inline rename, and bulk operations — powered by OPFS.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">🗂️</div>
+        <h3 style="color: var(--accent);">Multi-File Tabs</h3>
+        <p>Open multiple files in draggable tabs with unsaved-change indicators, auto-save on switch, and one-click close. Your tab order is persisted across sessions.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">🤖</div>
+        <h3 style="color: var(--accent);">AI Assistant Widget</h3>
+        <p>Floating AI panel with OpenAI, Gemini & Ollama support. Summarize, rewrite, explain, or generate content — works on selection or entire document.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">⌘</div>
+        <h3 style="color: var(--accent);">Command Palette</h3>
+        <p>Ctrl+P instant fuzzy-search over every command, file, and setting. Navigate to any line with :42 syntax. Keyboard-first productivity.</p>
+      </div>
+      <div class="ai-card reveal" style="border-color: rgba(200,64,26,0.2);">
+        <div class="card-icon">📊</div>
+        <h3 style="color: var(--accent);">Analytics Dashboard</h3>
+        <p>Live document stats — word count, character count, reading time, heading structure, and readability metrics in a dedicated panel.</p>
       </div>
     </div>
 
@@ -733,7 +814,7 @@ P <span class="str">--></span> User: Shows output
 
   <h2 class="reveal">Who Is MarkViewer For?</h2>
 
-  <p class="reveal"><strong>Developers</strong> who want to quickly sanity-check a README before pushing to GitHub. <strong>Technical writers</strong> who draft documentation and need instant visual feedback. <strong>Students</strong> writing notes in Markdown and wanting a clean output. <strong>Bloggers</strong> who write in Markdown before pasting into their CMS. <strong>Anyone</strong> who's ever typed two asterisks and wondered "wait, is this going to render?"</p>
+  <p class="reveal"><strong>Developers</strong> who want to quickly sanity-check a README before pushing to GitHub. <strong>Technical writers</strong> who draft documentation and need instant visual feedback. <strong>AI builders</strong> authoring system prompts, skills, and agent instructions in Markdown. <strong>Students</strong> writing notes and wanting a clean output. <strong>Bloggers</strong> who write in Markdown before pasting into their CMS. <strong>Anyone</strong> who's ever typed two asterisks and wondered "wait, is this going to render?"</p>
 
   <p class="reveal">In other words, MarkViewer is for people who value their time and appreciate tools that don't get in the way.</p>
 
