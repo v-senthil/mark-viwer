@@ -4,6 +4,7 @@ import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import mermaid from 'mermaid';
 import plantumlEncoder from 'plantuml-encoder';
 

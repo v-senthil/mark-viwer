@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { isTauri, nativeOpenFile, nativeSaveFile } from '../tauriHelpers';
 import {
   FilePlus2, FolderOpen, Save, Download, FileCode2, Printer, Clock,
   Columns2, PenLine, Eye, Share2, List, BookOpen, Keyboard,
@@ -81,7 +82,16 @@ export default function Navbar({
     newDocument(); toast.success('New document created');
   }, [hasUnsavedChanges, newDocument]);
 
-  const handleOpen = useCallback(() => fileRef.current?.click(), []);
+  const handleOpen = useCallback(async () => {
+    if (isTauri()) {
+      try {
+        const result = await nativeOpenFile();
+        if (result) { setContent(result.content); toast.success(`Opened ${result.name}`); }
+      } catch (e) { toast.error('Failed to open file'); }
+    } else {
+      fileRef.current?.click();
+    }
+  }, [setContent]);
 
   const handleFileChange = useCallback((e) => {
     const file = e.target.files[0]; if (!file) return;
@@ -90,11 +100,18 @@ export default function Navbar({
     r.readAsText(file); e.target.value = '';
   }, [setContent]);
 
-  const handleDownload = useCallback(() => {
-    const b = new Blob([content], { type: 'text/markdown' });
-    const u = URL.createObjectURL(b); const a = document.createElement('a');
-    a.href = u; a.download = 'document.md'; a.click(); URL.revokeObjectURL(u);
-    saveNow(); toast.success('Downloaded');
+  const handleDownload = useCallback(async () => {
+    if (isTauri()) {
+      try {
+        const path = await nativeSaveFile(content);
+        if (path) { saveNow(); toast.success('Saved to disk'); }
+      } catch (e) { toast.error('Failed to save file'); }
+    } else {
+      const b = new Blob([content], { type: 'text/markdown' });
+      const u = URL.createObjectURL(b); const a = document.createElement('a');
+      a.href = u; a.download = 'document.md'; a.click(); URL.revokeObjectURL(u);
+      saveNow(); toast.success('Downloaded');
+    }
   }, [content, saveNow]);
 
   const handleExportHTML = useCallback(() => {
@@ -232,25 +249,27 @@ export default function Navbar({
           {hasUnsavedChanges ? 'Unsaved' : `Saved ${timeSince()}`}
         </div>
 
-        <div className="relative">
-          <Dropdown dark={dark} label={
-            <span className={`inline-flex items-center gap-1.5 text-[12px] font-medium
-              ${dark ? 'text-blue-400' : 'text-blue-600'}`}>
-              <Share2 size={13} strokeWidth={2} />
-              <span className="hidden sm:inline">Share</span>
-            </span>
-          }>
-            {(close) => (<>
-              <MLabel dark={dark}>Link Validity</MLabel>
-              <MI icon={Link} label="Permanent" dark={dark} onClick={() => { handleShare(null); close(); }} />
-              <MDivider dark={dark} />
-              <MI icon={Timer} label="1 Hour" dark={dark} onClick={() => { handleShare(3600000); close(); }} />
-              <MI icon={Timer} label="1 Day" dark={dark} onClick={() => { handleShare(86400000); close(); }} />
-              <MI icon={Timer} label="1 Week" dark={dark} onClick={() => { handleShare(604800000); close(); }} />
-              <MI icon={Timer} label="30 Days" dark={dark} onClick={() => { handleShare(2592000000); close(); }} />
-            </>)}
-          </Dropdown>
-        </div>
+        {!isTauri() && (
+          <div className="relative">
+            <Dropdown dark={dark} label={
+              <span className={`inline-flex items-center gap-1.5 text-[12px] font-medium
+                ${dark ? 'text-blue-400' : 'text-blue-600'}`}>
+                <Share2 size={13} strokeWidth={2} />
+                <span className="hidden sm:inline">Share</span>
+              </span>
+            }>
+              {(close) => (<>
+                <MLabel dark={dark}>Link Validity</MLabel>
+                <MI icon={Link} label="Permanent" dark={dark} onClick={() => { handleShare(null); close(); }} />
+                <MDivider dark={dark} />
+                <MI icon={Timer} label="1 Hour" dark={dark} onClick={() => { handleShare(3600000); close(); }} />
+                <MI icon={Timer} label="1 Day" dark={dark} onClick={() => { handleShare(86400000); close(); }} />
+                <MI icon={Timer} label="1 Week" dark={dark} onClick={() => { handleShare(604800000); close(); }} />
+                <MI icon={Timer} label="30 Days" dark={dark} onClick={() => { handleShare(2592000000); close(); }} />
+              </>)}
+            </Dropdown>
+          </div>
+        )}
 
         <div className={`hidden sm:block w-px h-4 mx-0.5 ${dark ? 'bg-[#21262d]' : 'bg-gray-200'}`} />
 
