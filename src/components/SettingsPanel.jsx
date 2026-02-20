@@ -23,19 +23,6 @@ function Slider({ label, value, min, max, step = 1, onChange, dark, unit = '' })
   );
 }
 
-function Select({ label, value, options, onChange, dark }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className={`text-[13px] ${dark ? 'text-gray-300' : 'text-gray-700'}`}>{label}</span>
-      <select value={value} onChange={e => onChange(e.target.value)}
-        className={`text-[13px] px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer transition-colors
-          ${dark ? 'bg-[#21262d] border-[#30363d] text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-    </div>
-  );
-}
-
 function Toggle({ label, desc, checked, onChange, dark }) {
   return (
     <button onClick={() => onChange(!checked)}
@@ -71,8 +58,6 @@ export default function SettingsPanel({ settings, updateSettings, darkMode: dark
 
           <Section title="Editor" dark={dark}>
             <Slider label="Font Size" value={settings.editorFontSize} min={10} max={24} dark={dark} onChange={v => updateSettings({ editorFontSize: v })} unit="px" />
-            <Select label="Theme" value={settings.editorTheme} dark={dark} onChange={v => updateSettings({ editorTheme: v })}
-              options={[{ value: 'github', label: 'GitHub' }, { value: 'dracula', label: 'Dracula' }, { value: 'nord', label: 'Nord' }]} />
           </Section>
 
           <Section title="Preview" dark={dark}>
