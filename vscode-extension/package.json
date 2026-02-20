@@ -1,0 +1,162 @@
+{
+  "name": "markviewer",
+  "displayName": "MarkViewer - AI Markdown Editor",
+  "description": "AI-powered Markdown editor with real-time preview, analytics, and smart navigation",
+  "version": "1.0.0",
+  "publisher": "markviewer",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other",
+    "Formatters",
+    "Education"
+  ],
+  "keywords": [
+    "markdown",
+    "preview",
+    "ai",
+    "writing",
+    "editor"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "markviewer.openPreview",
+        "title": "MarkViewer: Open Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "markviewer.openPreviewSplit",
+        "title": "MarkViewer: Open Preview to the Side",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "markviewer.aiAssist",
+        "title": "MarkViewer: AI Assist",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "markviewer.showAnalytics",
+        "title": "MarkViewer: Show Document Analytics"
+      },
+      {
+        "command": "markviewer.exportHtml",
+        "title": "MarkViewer: Export as HTML"
+      },
+      {
+        "command": "markviewer.insertTable",
+        "title": "MarkViewer: Insert Table"
+      },
+      {
+        "command": "markviewer.insertCodeBlock",
+        "title": "MarkViewer: Insert Code Block"
+      },
+      {
+        "command": "markviewer.formatDocument",
+        "title": "MarkViewer: Format Document"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceLangId == markdown",
+          "command": "markviewer.openPreviewSplit",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "when": "resourceLangId == markdown",
+          "command": "markviewer.aiAssist",
+          "group": "markviewer"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "markviewer.openPreviewSplit",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "resourceLangId == markdown"
+      },
+      {
+        "command": "markviewer.aiAssist",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a",
+        "when": "resourceLangId == markdown && editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "MarkViewer",
+      "properties": {
+        "markviewer.previewTheme": {
+          "type": "string",
+          "default": "github",
+          "enum": ["github", "notion", "minimal", "academic", "developer"],
+          "description": "Preview theme style"
+        },
+        "markviewer.ai.provider": {
+          "type": "string",
+          "default": "ollama",
+          "enum": ["openai", "google", "ollama", "custom"],
+          "description": "AI provider for writing assistance"
+        },
+        "markviewer.ai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for AI provider (not needed for Ollama)"
+        },
+        "markviewer.ai.model": {
+          "type": "string",
+          "default": "llama3.2:latest",
+          "description": "AI model to use"
+        },
+        "markviewer.ai.ollamaEndpoint": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama API endpoint"
+        },
+        "markviewer.analytics.showInStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show word count in status bar"
+        },
+        "markviewer.preview.fontSize": {
+          "type": "number",
+          "default": 16,
+          "description": "Preview font size"
+        },
+        "markviewer.preview.lineHeight": {
+          "type": "number",
+          "default": 1.6,
+          "description": "Preview line height"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^18.x",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.45.0",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "marked": "^9.0.0",
+    "dompurify": "^3.0.0"
+  }
+}

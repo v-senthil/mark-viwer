@@ -98,9 +98,12 @@ export function useAppState() {
   const [presentationMode, setPresentationMode] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [showAISettings, setShowAISettings] = useState(false);
+  const [showAIWidget, setShowAIWidget] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showWorkspace, setShowWorkspace] = useState(false);
+  const [currentDocId, setCurrentDocId] = useState(null);
   const contentRef = useRef(content);
 
   useEffect(() => { contentRef.current = content; }, [content]);
@@ -209,8 +212,11 @@ export function useAppState() {
     presentationMode, setPresentationMode,
     showAIPanel, setShowAIPanel,
     showAISettings, setShowAISettings,
+    showAIWidget, setShowAIWidget,
     showAnalytics, setShowAnalytics,
     showThemes, setShowThemes,
     showCommandPalette, setShowCommandPalette,
+    showWorkspace, setShowWorkspace,
+    currentDocId, setCurrentDocId,
   };
 }

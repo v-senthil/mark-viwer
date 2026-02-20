@@ -6,7 +6,7 @@ import {
   Columns2, PenLine, Eye, Share2, List, BookOpen, Keyboard,
   Presentation, Target, Maximize2, Terminal, AlignCenter,
   Settings, Sun, Moon, ChevronDown, Link, Timer, ArrowUpDown,
-  Menu, X, Zap, BarChart3, Palette,
+  Menu, X, Zap, BarChart3, Palette, MessageSquare,
 } from 'lucide-react';
 
 /* ── Dropdown ───────────────────────────────────────────── */
@@ -71,7 +71,7 @@ export default function Navbar({
   hasUnsavedChanges, lastSaved, content, setContent, addToRecent,
   setShowCheatsheet, setShowShortcuts, setShowSettings,
   setShowTOC, setShowRecentDocs, setPresentationMode,
-  setShowAIPanel, setShowAnalytics, setShowThemes,
+  setShowAIPanel, setShowAIWidget, showAIWidget, setShowAnalytics, setShowThemes,
   isMobile,
 }) {
   const fileRef = useRef(null);
@@ -274,9 +274,16 @@ export default function Navbar({
 
         <div className={`hidden sm:block w-px h-4 mx-0.5 ${dark ? 'bg-[#21262d]' : 'bg-gray-200'}`} />
 
-        <button onClick={() => setShowAIPanel?.(true)} title="AI Assistant"
+        <button onClick={() => setShowAIPanel?.(true)} title="AI Assistant (Panel)"
           className={`nav-icon-btn ${dark ? 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/[.12]' : 'text-purple-500 hover:text-purple-600 hover:bg-purple-50'}`}>
           <Zap size={15} strokeWidth={1.75} />
+        </button>
+
+        <button onClick={() => setShowAIWidget?.(v => !v)} title="AI Widget (Floating) Ctrl+."
+          className={`nav-icon-btn ${showAIWidget
+            ? dark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'
+            : dark ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-500/[.12]' : 'text-blue-500 hover:text-blue-600 hover:bg-blue-50'}`}>
+          <MessageSquare size={15} strokeWidth={1.75} />
         </button>
 
         <button onClick={() => setShowAnalytics?.(true)} title="Document Analytics"

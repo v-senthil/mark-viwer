@@ -12,9 +12,11 @@ import TOCPanel from './components/TOCPanel';
 import RecentDocsPanel from './components/RecentDocsPanel';
 import AIPanel from './components/AIPanel';
 import AISettings from './components/AISettings';
+import AIWidget from './components/AIWidget';
 import AnalyticsPanel from './components/AnalyticsPanel';
 import ThemePanel from './components/ThemePanel';
 import CommandPalette from './components/CommandPalette';
+import WorkspacePanel from './components/WorkspacePanel';
 import { PenLine, Eye } from 'lucide-react';
 
 function useIsMobile(breakpoint = 640) {
@@ -43,9 +45,12 @@ export default function App() {
     presentationMode, setPresentationMode,
     showAIPanel, setShowAIPanel,
     showAISettings, setShowAISettings,
+    showAIWidget, setShowAIWidget,
     showAnalytics, setShowAnalytics,
     showThemes, setShowThemes,
     showCommandPalette, setShowCommandPalette,
+    showWorkspace, setShowWorkspace,
+    currentDocId, setCurrentDocId,
   } = state;
 
   const isMobile = useIsMobile();
@@ -126,16 +131,28 @@ export default function App() {
         e.preventDefault();
         setShowAnalytics(prev => !prev);
       }
+      // Ctrl+. : Toggle AI Widget
+      if ((e.ctrlKey || e.metaKey) && e.key === '.') {
+        e.preventDefault();
+        setShowAIWidget(prev => !prev);
+      }
       // Ctrl+P or Cmd+K: Open command palette
       if (((e.ctrlKey || e.metaKey) && e.key === 'p') || ((e.metaKey) && e.key === 'k')) {
         e.preventDefault();
         setShowCommandPalette(true);
       }
+      // Ctrl+Shift+W: Open workspace panel
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'w' || e.key === 'W')) {
+        e.preventDefault();
+        setShowWorkspace(prev => !prev);
+      }
       // Escape: Exit zen/focus/presentation mode or close panels
       if (e.key === 'Escape') {
         if (showCommandPalette) setShowCommandPalette(false);
+        else if (showWorkspace) setShowWorkspace(false);
         else if (showThemes) setShowThemes(false);
         else if (showAnalytics) setShowAnalytics(false);
+        else if (showAIWidget) setShowAIWidget(false);
         else if (showAIPanel) setShowAIPanel(false);
         else if (showAISettings) setShowAISettings(false);
         else if (settings.zenMode) updateSettings({ zenMode: false });
@@ -145,7 +162,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [saveNow, settings.darkMode, settings.zenMode, settings.focusMode, presentationMode, updateSettings, setPresentationMode, showAIPanel, showAISettings, showAnalytics, showThemes, showCommandPalette, setShowAIPanel, setShowAISettings, setShowAnalytics, setShowThemes, setShowCommandPalette]);
+  }, [saveNow, settings.darkMode, settings.zenMode, settings.focusMode, presentationMode, updateSettings, setPresentationMode, showAIPanel, showAISettings, showAIWidget, showAnalytics, showThemes, showCommandPalette, showWorkspace, setShowAIPanel, setShowAISettings, setShowAIWidget, setShowAnalytics, setShowThemes, setShowCommandPalette, setShowWorkspace]);
 
   // Resizable split pane
   const handleMouseDown = useCallback((e) => {
@@ -250,6 +267,8 @@ export default function App() {
         setShowRecentDocs={setShowRecentDocs}
         setPresentationMode={setPresentationMode}
         setShowAIPanel={setShowAIPanel}
+        setShowAIWidget={setShowAIWidget}
+        showAIWidget={showAIWidget}
         setShowAnalytics={setShowAnalytics}
         setShowThemes={setShowThemes}
         isMobile={isMobile}
@@ -395,12 +414,49 @@ export default function App() {
           onClose={() => setShowAnalytics(false)}
         />
       )}
+      {showAIWidget && (
+        <AIWidget
+          darkMode={dark}
+          onClose={() => setShowAIWidget(false)}
+          content={content}
+          selectedText={editorRef.current?.state?.sliceDoc(
+            editorRef.current?.state?.selection?.main?.from,
+            editorRef.current?.state?.selection?.main?.to
+          )}
+          onInsertText={(text) => {
+            const view = editorRef.current;
+            if (view) {
+              const pos = view.state.selection.main.head;
+              view.dispatch({ changes: { from: pos, insert: text } });
+            }
+          }}
+          onReplaceSelection={(text) => {
+            const view = editorRef.current;
+            if (view) {
+              const sel = view.state.selection.main;
+              view.dispatch({ changes: { from: sel.from, to: sel.to, insert: text } });
+            }
+          }}
+        />
+      )}
       {showThemes && (
         <ThemePanel
           settings={settings}
           updateSettings={updateSettings}
           darkMode={dark}
           onClose={() => setShowThemes(false)}
+        />
+      )}
+      {showWorkspace && (
+        <WorkspacePanel
+          darkMode={dark}
+          onClose={() => setShowWorkspace(false)}
+          currentDocId={currentDocId}
+          onOpenDocument={(doc) => {
+            setContent(doc.content);
+            setCurrentDocId(doc.id);
+            setShowWorkspace(false);
+          }}
         />
       )}
       <CommandPalette
@@ -420,11 +476,13 @@ export default function App() {
             'toggle-typewriter': () => updateSettings({ typewriterMode: !settings.typewriterMode }),
             'open-settings': () => setShowSettings(true),
             'open-ai': () => setShowAIPanel(true),
+            'open-ai-widget': () => setShowAIWidget(prev => !prev),
             'open-analytics': () => setShowAnalytics(true),
             'open-themes': () => setShowThemes(true),
             'open-toc': () => setShowTOC(true),
             'open-cheatsheet': () => setShowCheatsheet(true),
             'open-shortcuts': () => setShowShortcuts(true),
+            'open-workspace': () => setShowWorkspace(true),
             'file-new': () => newDocument(),
             'file-save': () => saveNow(),
             'file-download': () => {

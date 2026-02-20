@@ -10,13 +10,15 @@
  * - Abort ongoing requests
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   X, Zap, Pencil, FileText, CheckCircle, Scissors, Maximize2,
   List, HelpCircle, MessageSquare, Loader2, Square, Settings,
   Copy, Check, ArrowRight, RotateCcw, AlertCircle, Sparkles
 } from 'lucide-react';
 import { getAIClient, PROMPT_TEMPLATES, loadAISettings, PROVIDERS } from '../lib/aiClient';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 // Map action icons
 const ACTION_ICONS = {
@@ -61,6 +63,17 @@ function ResponseDisplay({ content, isStreaming, error, dark }) {
     }
   }, [content, isStreaming]);
 
+  // Render markdown content
+  const renderedContent = useMemo(() => {
+    if (!content) return '';
+    try {
+      const html = marked(content, { breaks: true, gfm: true });
+      return DOMPurify.sanitize(html);
+    } catch {
+      return content;
+    }
+  }, [content]);
+
   if (error) {
     return (
       <div className={`flex items-start gap-2 p-3 rounded-lg text-[13px]
@@ -93,15 +106,27 @@ function ResponseDisplay({ content, isStreaming, error, dark }) {
         </div>
       )}
 
-      {/* Content */}
-      <div className={`prose prose-sm max-w-none
-        ${dark ? 'prose-invert' : ''}`}>
-        <pre className={`whitespace-pre-wrap font-sans text-[13px] leading-relaxed m-0 p-0 bg-transparent
-          ${dark ? 'text-gray-300' : 'text-gray-700'}`}>
-          {content}
-          {isStreaming && <span className="animate-pulse">▌</span>}
-        </pre>
-      </div>
+      {/* Content - Rendered Markdown */}
+      <div 
+        className={`ai-response-content prose prose-sm max-w-none
+          ${dark ? 'prose-invert' : ''}
+          [&_h1]:text-lg [&_h1]:font-bold [&_h1]:mb-2 [&_h1]:mt-3
+          [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:mt-3
+          [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-1 [&_h3]:mt-2
+          [&_p]:text-[13px] [&_p]:leading-relaxed [&_p]:mb-2
+          [&_ul]:text-[13px] [&_ul]:mb-2 [&_ul]:list-disc [&_ul]:pl-5
+          [&_ol]:text-[13px] [&_ol]:mb-2 [&_ol]:list-decimal [&_ol]:pl-5
+          [&_li]:mb-1
+          [&_code]:text-[12px] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded
+          [&_pre]:text-[12px] [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_pre]:mb-2
+          ${dark 
+            ? '[&_code]:bg-[#21262d] [&_pre]:bg-[#21262d] [&_code]:text-gray-300' 
+            : '[&_code]:bg-gray-100 [&_pre]:bg-gray-100 [&_code]:text-gray-700'}
+          [&_strong]:font-semibold [&_em]:italic
+          [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:my-2
+          ${dark ? '[&_blockquote]:border-gray-600 [&_blockquote]:text-gray-400' : '[&_blockquote]:border-gray-300 [&_blockquote]:text-gray-600'}`}
+        dangerouslySetInnerHTML={{ __html: renderedContent + (isStreaming ? '<span class="animate-pulse">▌</span>' : '') }}
+      />
     </div>
   );
 }
