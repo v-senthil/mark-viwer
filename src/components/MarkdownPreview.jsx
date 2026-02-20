@@ -16,63 +16,84 @@ mermaid.initialize({
   fontFamily: 'inherit',
 });
 
-// Custom renderer
-function createRenderer() {
-  const renderer = new marked.Renderer();
-
-  // Code blocks with syntax highlighting, mermaid & PlantUML support
-  renderer.code = function (code, lang) {
-    if (lang === 'mermaid') {
-      const id = 'mermaid-' + Math.random().toString(36).slice(2, 10);
-      return `<div class="mermaid-diagram" data-mermaid-id="${id}">${code}</div>`;
-    }
-    if (lang === 'plantuml' || lang === 'planttext' || lang === 'puml') {
+// Configure marked with custom renderer (marked v12+ API)
+marked.use({
+  gfm: true,
+  breaks: true,
+  renderer: {
+    // Code blocks with syntax highlighting, mermaid & PlantUML support
+    code(token) {
+      // Handle both object form and legacy positional args
+      const code = typeof token === 'string' ? token : (token?.text || token?.code || '');
+      const lang = typeof token === 'string' ? arguments[1] : (token?.lang || '');
+      
+      if (!code && code !== '') {
+        return '<pre><code></code></pre>';
+      }
+      
+      if (lang === 'mermaid') {
+        const id = 'mermaid-' + Math.random().toString(36).slice(2, 10);
+        return `<div class="mermaid-diagram" data-mermaid-id="${id}">${code}</div>`;
+      }
+      if (lang === 'plantuml' || lang === 'planttext' || lang === 'puml') {
+        try {
+          const encoded = plantumlEncoder.encode(code);
+          const url = `https://www.plantuml.com/plantuml/svg/${encoded}`;
+          return `<div class="plantuml-diagram"><img src="${url}" alt="PlantUML Diagram" style="max-width:100%;background:white;border-radius:8px;padding:8px" /></div>`;
+        } catch (e) {
+          return `<pre class="text-red-500 text-sm">PlantUML Error: ${e.message}</pre>`;
+        }
+      }
+      
+      let highlighted;
       try {
-        const encoded = plantumlEncoder.encode(code);
-        const url = `https://www.plantuml.com/plantuml/svg/${encoded}`;
-        return `<div class="plantuml-diagram"><img src="${url}" alt="PlantUML Diagram" style="max-width:100%;background:white;border-radius:8px;padding:8px" /></div>`;
+        if (lang && hljs.getLanguage(lang)) {
+          highlighted = hljs.highlight(code, { language: lang }).value;
+        } else {
+          highlighted = hljs.highlightAuto(code).value;
+        }
       } catch (e) {
-        return `<pre class="text-red-500 text-sm">PlantUML Error: ${e.message}</pre>`;
+        // Fallback to plain text if highlighting fails
+        highlighted = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
-    }
-    let highlighted;
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        highlighted = hljs.highlight(code, { language: lang }).value;
-      } catch (_) {
-        highlighted = hljs.highlightAuto(code).value;
-      }
-    } else {
-      highlighted = hljs.highlightAuto(code).value;
-    }
-    return `<pre><code class="hljs language-${lang || 'plaintext'}">${highlighted}</code></pre>`;
-  };
+      return `<pre><code class="hljs language-${lang || 'plaintext'}">${highlighted}</code></pre>`;
+    },
 
-  // Links open in new tab
-  renderer.link = function (href, title, text) {
-    const titleAttr = title ? ` title="${title}"` : '';
-    return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`;
-  };
-
-  return renderer;
-}
+    // Links open in new tab
+    link(token) {
+      const href = typeof token === 'string' ? token : (token?.href || '');
+      const title = typeof token === 'string' ? arguments[1] : (token?.title || '');
+      const text = typeof token === 'string' ? arguments[2] : (token?.text || '');
+      const titleAttr = title ? ` title="${title}"` : '';
+      return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`;
+    }
+  }
+});
 
 // KaTeX processing
 function processKaTeX(html) {
-  // Display math: $$...$$
+  // Display math: $$...$$ (must have content, not just whitespace)
   html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_, tex) => {
+    if (!tex.trim()) return '$$$$';
     try {
       return katex.renderToString(tex.trim(), { displayMode: true, throwOnError: false });
     } catch (e) {
       return `<span class="text-red-500">KaTeX Error: ${e.message}</span>`;
     }
   });
-  // Inline math: $...$  (not inside code)
-  html = html.replace(/(?<!\$)\$(?!\$)((?:[^$\\]|\\.)+?)\$/g, (_, tex) => {
+  // Inline math: $...$ 
+  // - Not preceded by $ (to avoid matching $$)
+  // - Not followed by digit (to avoid $15 currency)
+  // - Content cannot start with digit (currency) or space
+  // - Content cannot contain HTML tags (< or >)
+  // - Must end with $ not followed by digit
+  html = html.replace(/(?<!\$)\$(?!\d)([^$<>\n]+?)\$(?!\d)/g, (match, tex) => {
+    // Skip if it looks like currency or is empty
+    if (!tex.trim() || /^\d/.test(tex.trim())) return match;
     try {
       return katex.renderToString(tex.trim(), { displayMode: false, throwOnError: false });
     } catch (e) {
-      return `<span class="text-red-500">KaTeX Error: ${e.message}</span>`;
+      return match; // Return original if KaTeX fails
     }
   });
   return html;
@@ -113,20 +134,14 @@ export default function MarkdownPreview({ content, settings, onTOC }) {
   const html = useMemo(() => {
     if (!content) return '';
 
-    marked.setOptions({
-      renderer: createRenderer(),
-      gfm: true,
-      breaks: true,
-    });
-
     let raw = marked.parse(content);
     raw = processKaTeX(raw);
     raw = processFootnotes(raw);
 
     // Sanitize
     const clean = DOMPurify.sanitize(raw, {
-      ADD_TAGS: ['foreignObject', 'desc', 'title', 'svg', 'path', 'g', 'rect', 'circle', 'line', 'polyline', 'polygon', 'text', 'tspan', 'marker', 'defs', 'clipPath', 'use', 'image', 'style'],
-      ADD_ATTR: ['xmlns', 'viewBox', 'fill', 'stroke', 'stroke-width', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'points', 'marker-end', 'marker-start', 'text-anchor', 'dominant-baseline', 'font-size', 'font-family', 'font-weight', 'fill-opacity', 'stroke-opacity', 'stroke-dasharray', 'data-mermaid-id', 'class', 'id', 'style', 'src', 'alt'],
+      ADD_TAGS: ['foreignObject', 'desc', 'title', 'svg', 'path', 'g', 'rect', 'circle', 'line', 'polyline', 'polygon', 'text', 'tspan', 'marker', 'defs', 'clipPath', 'use', 'image', 'style', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'input'],
+      ADD_ATTR: ['xmlns', 'viewBox', 'fill', 'stroke', 'stroke-width', 'd', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'transform', 'points', 'marker-end', 'marker-start', 'text-anchor', 'dominant-baseline', 'font-size', 'font-family', 'font-weight', 'fill-opacity', 'stroke-opacity', 'stroke-dasharray', 'data-mermaid-id', 'class', 'id', 'style', 'src', 'alt', 'type', 'checked', 'disabled', 'colspan', 'rowspan', 'scope'],
       ALLOW_UNKNOWN_PROTOCOLS: true,
     });
 
