@@ -72,7 +72,7 @@ export default function Navbar({
   setShowCheatsheet, setShowShortcuts, setShowSettings,
   setShowTOC, setShowRecentDocs, setPresentationMode,
   setShowAIPanel, onOpenAIWidget, showAIWidget, setShowAnalytics, setShowThemes,
-  isMobile,
+  isMobile, showSidebar, setShowSidebar,
 }) {
   const fileRef = useRef(null);
   const dark = settings.darkMode;
@@ -154,6 +154,20 @@ export default function Navbar({
           </div>
           <span className={`hidden sm:inline text-[13px] font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>MarkViewer</span>
         </div>
+
+        {/* Sidebar toggle */}
+        {setShowSidebar && (
+          <button
+            onClick={() => setShowSidebar(prev => !prev)}
+            title="Toggle sidebar (⌘B)"
+            className={`hidden sm:flex items-center justify-center w-7 h-7 rounded-md transition-colors mr-1
+              ${showSidebar
+                ? dark ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-50 text-blue-600'
+                : dark ? 'text-gray-500 hover:bg-white/[.06] hover:text-gray-300' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
+          >
+            <List size={15} strokeWidth={1.75} />
+          </button>
+        )}
 
         {/* Desktop dropdowns */}
         <div className="hidden sm:flex items-center gap-0.5">

@@ -2,11 +2,16 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { DEFAULT_MARKDOWN } from '../defaultContent';
 import LZString from 'lz-string';
 import toast from 'react-hot-toast';
+import {
+  initStorage, listFiles, readFile, writeFile, deleteFile,
+  getRecentFiles, pushRecent, getActiveWorkspace,
+} from '../lib/storage';
 
 const STORAGE_KEY = 'markviewer_content';
 const SETTINGS_KEY = 'markviewer_settings';
 const RECENT_KEY = 'markviewer_recent';
 const AUTOSAVE_INTERVAL = 30000;
+const TABS_KEY = 'markviewer_open_tabs';
 
 const defaultSettings = {
   darkMode: true,
@@ -103,7 +108,21 @@ export function useAppState() {
   const [showThemes, setShowThemes] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showWorkspace, setShowWorkspace] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(() => {
+    try { return localStorage.getItem('mv_show_sidebar') === 'true'; } catch { return false; }
+  });
   const [currentDocId, setCurrentDocId] = useState(null);
+  const [openTabs, setOpenTabs] = useState(() => {
+    try {
+      const saved = localStorage.getItem(TABS_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [activeTabId, setActiveTabId] = useState(() => {
+    try { return localStorage.getItem('mv_active_tab') || null; } catch { return null; }
+  });
+  const [unsavedIds, setUnsavedIds] = useState(new Set());
+  const [storageReady, setStorageReady] = useState(false);
   const contentRef = useRef(content);
 
   useEffect(() => { contentRef.current = content; }, [content]);
@@ -140,30 +159,96 @@ export function useAppState() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }, [settings]);
 
-  // Autosave
+  // Autosave — saves to localStorage AND to OPFS/storage if a file is active
   useEffect(() => {
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       localStorage.setItem(STORAGE_KEY, contentRef.current);
+      // Also persist to storage API if we have an active file
+      if (activeTabId && storageReady) {
+        const tab = openTabs.find(t => t.id === activeTabId);
+        if (tab) {
+          try {
+            await writeFile(tab.path || tab.name, contentRef.current);
+          } catch (e) {
+            console.warn('Autosave to storage failed:', e);
+          }
+        }
+      }
       setLastSaved(Date.now());
       setHasUnsavedChanges(false);
+      setUnsavedIds(new Set());
     }, AUTOSAVE_INTERVAL);
     return () => clearInterval(interval);
+  }, [activeTabId, openTabs, storageReady]);
+
+  // Init storage on mount
+  useEffect(() => {
+    initStorage().then(() => {
+      setStorageReady(true);
+      // Populate recent docs from storage
+      const recent = getRecentFiles(10);
+      if (recent.length > 0) {
+        setRecentDocs(recent.map(r => ({
+          title: r.title || r.name,
+          preview: r.preview || '',
+          id: r.id,
+          workspace: r.workspace,
+          timestamp: r.modified,
+        })));
+      }
+    }).catch(e => console.error('Storage init failed:', e));
   }, []);
+
+  // Persist sidebar state
+  useEffect(() => {
+    localStorage.setItem('mv_show_sidebar', showSidebar ? 'true' : 'false');
+  }, [showSidebar]);
+
+  // Persist open tabs
+  useEffect(() => {
+    localStorage.setItem(TABS_KEY, JSON.stringify(openTabs));
+  }, [openTabs]);
+
+  // Persist active tab
+  useEffect(() => {
+    if (activeTabId) localStorage.setItem('mv_active_tab', activeTabId);
+  }, [activeTabId]);
 
   const updateContent = useCallback((newContent) => {
     setContent(newContent);
     setHasUnsavedChanges(true);
-  }, []);
+    if (activeTabId) {
+      setUnsavedIds(prev => new Set(prev).add(activeTabId));
+    }
+  }, [activeTabId]);
 
   const updateSettings = useCallback((updates) => {
     setSettingsRaw(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const saveNow = useCallback(() => {
+  const saveNow = useCallback(async () => {
     localStorage.setItem(STORAGE_KEY, contentRef.current);
+    // Persist to storage API if a file is active
+    if (activeTabId && storageReady) {
+      const tab = openTabs.find(t => t.id === activeTabId);
+      if (tab) {
+        try {
+          await writeFile(tab.path || tab.name, contentRef.current);
+        } catch (e) {
+          console.warn('Save to storage failed:', e);
+        }
+      }
+    }
     setLastSaved(Date.now());
     setHasUnsavedChanges(false);
-  }, []);
+    if (activeTabId) {
+      setUnsavedIds(prev => {
+        const n = new Set(prev);
+        n.delete(activeTabId);
+        return n;
+      });
+    }
+  }, [activeTabId, openTabs, storageReady]);
 
   const addToRecent = useCallback((title, content) => {
     const entry = {
@@ -173,10 +258,93 @@ export function useAppState() {
       timestamp: Date.now(),
     };
     setRecentDocs(prev => {
-      const next = [entry, ...prev.filter(d => d.title !== title)].slice(0, 5);
+      const next = [entry, ...prev.filter(d => d.title !== title)].slice(0, 10);
       localStorage.setItem(RECENT_KEY, JSON.stringify(next));
       return next;
     });
+  }, []);
+
+  // ── Tab / File management helpers ─────────────────────
+  const openFileInTab = useCallback((meta, fileContent) => {
+    setContent(fileContent);
+    setCurrentDocId(meta.id);
+    setActiveTabId(meta.id);
+    // Ensure tab exists
+    setOpenTabs(prev => {
+      if (prev.some(t => t.id === meta.id)) return prev;
+      return [...prev, { id: meta.id, name: meta.name || meta.title || 'untitled.md', path: meta.path || '' }];
+    });
+    // Add to recent
+    addToRecent(meta.title || meta.name, fileContent);
+  }, [addToRecent]);
+
+  const closeTab = useCallback(async (id) => {
+    // If unsaved, save automatically
+    if (unsavedIds.has(id) && storageReady) {
+      const tab = openTabs.find(t => t.id === id);
+      if (tab && id === activeTabId) {
+        try { await writeFile(tab.path || tab.name, contentRef.current); } catch { /* ignore */ }
+      }
+    }
+    setOpenTabs(prev => {
+      const filtered = prev.filter(t => t.id !== id);
+      if (id === activeTabId) {
+        // Switch to adjacent tab
+        const idx = prev.findIndex(t => t.id === id);
+        const next = filtered[Math.min(idx, filtered.length - 1)];
+        if (next) {
+          setActiveTabId(next.id);
+          setCurrentDocId(next.id);
+          // Load that file's content
+          readFile(next.id).then(c => setContent(c)).catch(() => {});
+        } else {
+          setActiveTabId(null);
+          setCurrentDocId(null);
+          setContent(loadContent());
+        }
+      }
+      return filtered;
+    });
+    setUnsavedIds(prev => {
+      const n = new Set(prev);
+      n.delete(id);
+      return n;
+    });
+  }, [activeTabId, openTabs, unsavedIds, storageReady]);
+
+  const switchTab = useCallback(async (id) => {
+    if (id === activeTabId) return;
+    // Auto-save current tab before switching
+    if (activeTabId && unsavedIds.has(activeTabId) && storageReady) {
+      const tab = openTabs.find(t => t.id === activeTabId);
+      if (tab) {
+        try { await writeFile(tab.path || tab.name, contentRef.current); } catch { /* ignore */ }
+      }
+    }
+    setActiveTabId(id);
+    setCurrentDocId(id);
+    try {
+      const fileContent = await readFile(id);
+      setContent(fileContent);
+    } catch (e) {
+      console.warn('Failed to read tab file:', e);
+    }
+  }, [activeTabId, openTabs, unsavedIds, storageReady]);
+
+  const reorderTabs = useCallback((newTabs) => {
+    setOpenTabs(newTabs);
+  }, []);
+
+  const refreshRecentDocs = useCallback(() => {
+    const recent = getRecentFiles(10);
+    setRecentDocs(recent.map(r => ({
+      title: r.title || r.name,
+      preview: r.preview || '',
+      content: null, // loaded on demand
+      id: r.id,
+      workspace: r.workspace,
+      timestamp: r.modified,
+    })));
   }, []);
 
   const newDocument = useCallback(() => {
@@ -217,6 +385,17 @@ export function useAppState() {
     showThemes, setShowThemes,
     showCommandPalette, setShowCommandPalette,
     showWorkspace, setShowWorkspace,
+    showSidebar, setShowSidebar,
     currentDocId, setCurrentDocId,
+    // New workspace/tabs state
+    openTabs, setOpenTabs,
+    activeTabId, setActiveTabId,
+    unsavedIds,
+    storageReady,
+    openFileInTab,
+    closeTab,
+    switchTab,
+    reorderTabs,
+    refreshRecentDocs,
   };
 }

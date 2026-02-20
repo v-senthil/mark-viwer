@@ -17,6 +17,8 @@ import AnalyticsPanel from './components/AnalyticsPanel';
 import ThemePanel from './components/ThemePanel';
 import CommandPalette from './components/CommandPalette';
 import WorkspacePanel from './components/WorkspacePanel';
+import WorkspaceSidebar from './components/WorkspaceSidebar';
+import FileTabs from './components/FileTabs';
 import { PenLine, Eye } from 'lucide-react';
 
 function useIsMobile(breakpoint = 640) {
@@ -50,7 +52,10 @@ export default function App() {
     showThemes, setShowThemes,
     showCommandPalette, setShowCommandPalette,
     showWorkspace, setShowWorkspace,
+    showSidebar, setShowSidebar,
     currentDocId, setCurrentDocId,
+    openTabs, openFileInTab, closeTab, switchTab, reorderTabs,
+    activeTabId, unsavedIds, refreshRecentDocs,
   } = state;
 
   const isMobile = useIsMobile();
@@ -155,6 +160,11 @@ export default function App() {
         e.preventDefault();
         setShowWorkspace(prev => !prev);
       }
+      // Ctrl+B: Toggle sidebar
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        setShowSidebar(prev => !prev);
+      }
       // Escape: Exit zen/focus/presentation mode or close panels
       if (e.key === 'Escape') {
         if (showCommandPalette) setShowCommandPalette(false);
@@ -171,7 +181,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [saveNow, settings.darkMode, settings.zenMode, settings.focusMode, presentationMode, updateSettings, setPresentationMode, showAIPanel, showAISettings, showAIWidget, showAnalytics, showThemes, showCommandPalette, showWorkspace, setShowAIPanel, setShowAISettings, setShowAIWidget, setShowAnalytics, setShowThemes, setShowCommandPalette, setShowWorkspace]);
+  }, [saveNow, settings.darkMode, settings.zenMode, settings.focusMode, presentationMode, updateSettings, setPresentationMode, showAIPanel, showAISettings, showAIWidget, showAnalytics, showThemes, showCommandPalette, showWorkspace, setShowAIPanel, setShowAISettings, setShowAIWidget, setShowAnalytics, setShowThemes, setShowCommandPalette, setShowWorkspace, setShowSidebar]);
 
   // Resizable split pane
   const handleMouseDown = useCallback((e) => {
@@ -293,6 +303,8 @@ export default function App() {
         setShowAnalytics={setShowAnalytics}
         setShowThemes={setShowThemes}
         isMobile={isMobile}
+        showSidebar={showSidebar}
+        setShowSidebar={setShowSidebar}
       />
 
       {/* Toolbar */}
@@ -324,8 +336,35 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Content */}
-      <div id="split-container" className="flex-1 flex overflow-hidden relative">
+      {/* File Tabs */}
+      {openTabs.length > 0 && (
+        <FileTabs
+          tabs={openTabs}
+          activeTabId={activeTabId}
+          unsavedIds={unsavedIds}
+          darkMode={dark}
+          onActivate={switchTab}
+          onClose={closeTab}
+          onReorder={reorderTabs}
+        />
+      )}
+
+      {/* Main Content — sidebar + editor/preview */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Workspace Sidebar */}
+        <WorkspaceSidebar
+          darkMode={dark}
+          isOpen={showSidebar}
+          onClose={() => setShowSidebar(false)}
+          activeFileId={activeTabId || currentDocId}
+          onOpenFile={(meta, fileContent) => {
+            openFileInTab(meta, fileContent);
+          }}
+          onNewFile={newDocument}
+        />
+
+        {/* Editor + Preview area */}
+        <div id="split-container" className="flex-1 flex overflow-hidden relative">
         {/* TOC Panel */}
         {showTOC && (
           <TOCPanel
@@ -374,6 +413,7 @@ export default function App() {
             />
           </div>
         )}
+        </div>
       </div>
 
       {/* Status Bar */}
@@ -471,8 +511,10 @@ export default function App() {
           onClose={() => setShowWorkspace(false)}
           currentDocId={currentDocId}
           onOpenDocument={(doc) => {
-            setContent(doc.content);
-            setCurrentDocId(doc.id);
+            openFileInTab(
+              { id: doc.id, name: doc.title || 'untitled.md', path: doc.path || '', title: doc.title },
+              doc.content
+            );
             setShowWorkspace(false);
           }}
         />
@@ -501,6 +543,7 @@ export default function App() {
             'open-cheatsheet': () => setShowCheatsheet(true),
             'open-shortcuts': () => setShowShortcuts(true),
             'open-workspace': () => setShowWorkspace(true),
+            'toggle-sidebar': () => setShowSidebar(prev => !prev),
             'file-new': () => newDocument(),
             'file-save': () => saveNow(),
             'file-download': () => {

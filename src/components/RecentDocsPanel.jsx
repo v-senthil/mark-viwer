@@ -1,7 +1,20 @@
 import { Clock, X, FileText } from 'lucide-react';
+import { readFile } from '../lib/storage';
 
 export default function RecentDocsPanel({ docs, darkMode: dark, onClose, onOpen }) {
-  const openDoc = (doc) => { onOpen(doc.content); onClose(); };
+  const openDoc = async (doc) => {
+    try {
+      if (doc.content) {
+        onOpen(doc.content);
+      } else if (doc.id) {
+        const content = await readFile(doc.id);
+        onOpen(content);
+      }
+    } catch (e) {
+      console.warn('Failed to open recent doc:', e);
+    }
+    onClose();
+  };
 
   const timeAgo = (ts) => {
     const s = Math.floor((Date.now() - ts) / 1000);
