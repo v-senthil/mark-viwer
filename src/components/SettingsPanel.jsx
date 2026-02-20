@@ -78,10 +78,6 @@ export default function SettingsPanel({ settings, updateSettings, darkMode: dark
           <Section title="Preview" dark={dark}>
             <Slider label="Font Size" value={settings.previewFontSize} min={12} max={28} dark={dark} onChange={v => updateSettings({ previewFontSize: v })} unit="px" />
             <Slider label="Line Height" value={settings.previewLineHeight} min={1.2} max={2.2} step={0.1} dark={dark} onChange={v => updateSettings({ previewLineHeight: v })} />
-            <Select label="Font Family" value={settings.previewFontFamily} dark={dark} onChange={v => updateSettings({ previewFontFamily: v })}
-              options={[{ value: 'sans-serif', label: 'Sans Serif' }, { value: 'serif', label: 'Serif' }, { value: 'monospace', label: 'Monospace' }]} />
-            <Select label="Preview Theme" value={settings.previewTheme} dark={dark} onChange={v => updateSettings({ previewTheme: v })}
-              options={[{ value: 'github', label: 'GitHub' }, { value: 'notion', label: 'Notion' }, { value: 'minimal', label: 'Minimal' }]} />
           </Section>
 
           <Section title="Modes" dark={dark}>

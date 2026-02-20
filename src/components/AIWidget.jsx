@@ -108,6 +108,7 @@ export default function AIWidget({
     if (e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea')) {
       return;
     }
+    e.preventDefault(); // Prevent text selection
     setIsDragging(true);
     const rect = widgetRef.current.getBoundingClientRect();
     setDragOffset({
@@ -121,6 +122,7 @@ export default function AIWidget({
     if (!isDragging) return;
 
     const handleMouseMove = (e) => {
+      e.preventDefault(); // Prevent text selection during drag
       const newX = Math.max(0, Math.min(window.innerWidth - 360, e.clientX - dragOffset.x));
       const newY = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragOffset.y));
       setPosition({ x: newX, y: newY });
@@ -220,6 +222,7 @@ export default function AIWidget({
         top: position.y,
         zIndex: 1000,
         cursor: isDragging ? 'grabbing' : 'default',
+        userSelect: isDragging ? 'none' : 'auto',
       }}
       className={`shadow-2xl rounded-xl overflow-hidden transition-all duration-200
         ${isMinimized ? 'w-[200px]' : 'w-[360px]'}
@@ -228,7 +231,7 @@ export default function AIWidget({
       {/* Header - Draggable */}
       <div
         onMouseDown={handleDragStart}
-        className={`flex items-center justify-between px-3 py-2 cursor-grab active:cursor-grabbing
+        className={`flex items-center justify-between px-3 py-2 cursor-grab active:cursor-grabbing select-none
           ${dark ? 'bg-[#21262d]' : 'bg-gray-50'}`}
       >
         <div className="flex items-center gap-2">

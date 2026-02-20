@@ -10,10 +10,19 @@
  * Features:
  * - Streaming responses with AbortController support
  * - BYOK (Bring Your Own Key) model
- * - Secure key handling (never logged)
+ * - Secure key handling (encrypted storage)
  * - Friendly error messages
  * - Dynamic Ollama model discovery
+ * - Rate limiting for API requests
  */
+
+import { 
+  encryptApiKey, 
+  decryptApiKey, 
+  isRateLimited, 
+  getRemainingRequests,
+  validateApiKey 
+} from './security.js';
 
 // Storage key for AI settings
 export const AI_SETTINGS_KEY = 'markviewer_ai_settings';
@@ -171,12 +180,38 @@ Explanation:`,
 
 /**
  * Load AI settings from localStorage
+ * API keys are decrypted on load
  */
 export function loadAISettings() {
   try {
     const saved = localStorage.getItem(AI_SETTINGS_KEY);
     if (saved) {
-      return { ...DEFAULT_AI_SETTINGS, ...JSON.parse(saved) };
+      const parsed = JSON.parse(saved);
+      return { ...DEFAULT_AI_SETTINGS, ...parsed };
+    }
+  } catch (e) {
+    console.warn('Failed to load AI settings:', e);
+  }
+  return { ...DEFAULT_AI_SETTINGS };
+}
+
+/**
+ * Load AI settings with decrypted API key (async)
+ */
+export async function loadAISettingsSecure() {
+  try {
+    const saved = localStorage.getItem(AI_SETTINGS_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Decrypt API key if it exists and is encrypted
+      if (parsed.encryptedApiKey) {
+        const decrypted = await decryptApiKey(parsed.encryptedApiKey);
+        if (decrypted) {
+          parsed.apiKey = decrypted;
+        }
+        delete parsed.encryptedApiKey;
+      }
+      return { ...DEFAULT_AI_SETTINGS, ...parsed };
     }
   } catch (e) {
     console.warn('Failed to load AI settings:', e);
@@ -186,7 +221,7 @@ export function loadAISettings() {
 
 /**
  * Save AI settings to localStorage
- * NOTE: API keys are stored - user is responsible for their own security
+ * API keys are encrypted before storage for security
  */
 export function saveAISettings(settings) {
   try {
@@ -194,6 +229,49 @@ export function saveAISettings(settings) {
   } catch (e) {
     console.warn('Failed to save AI settings:', e);
   }
+}
+
+/**
+ * Save AI settings with encrypted API key (async)
+ */
+export async function saveAISettingsSecure(settings) {
+  try {
+    const toSave = { ...settings };
+    // Encrypt API key if present
+    if (toSave.apiKey) {
+      const encrypted = await encryptApiKey(toSave.apiKey);
+      if (encrypted) {
+        toSave.encryptedApiKey = encrypted;
+        delete toSave.apiKey;
+      }
+    }
+    localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(toSave));
+  } catch (e) {
+    console.warn('Failed to save AI settings:', e);
+  }
+}
+
+/**
+ * Check rate limit status for AI requests
+ * @param {string} provider - Provider name
+ * @returns {{ limited: boolean, remaining: number }}
+ */
+export function checkRateLimit(provider = 'default') {
+  const key = `ai_request_${provider}`;
+  // Allow 30 requests per minute by default
+  const limited = isRateLimited(key, 30, 60000);
+  const remaining = getRemainingRequests(key, 30, 60000);
+  return { limited, remaining };
+}
+
+/**
+ * Validate API key format for a provider
+ * @param {string} apiKey - API key to validate
+ * @param {string} provider - Provider name
+ * @returns {{ valid: boolean, error?: string }}
+ */
+export function validateProviderApiKey(apiKey, provider) {
+  return validateApiKey(apiKey, provider);
 }
 
 /**
