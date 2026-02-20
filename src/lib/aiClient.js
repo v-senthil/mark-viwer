@@ -170,6 +170,16 @@ Text:
 
 Corrected text:`,
   },
+  rewrite: {
+    name: 'Rewrite',
+    icon: 'refresh-cw',
+    prompt: `Rewrite the following text in a different way while preserving the meaning, key information, and markdown formatting. Improve clarity and flow.
+
+Text:
+{content}
+
+Rewritten version:`,
+  },
   makeConcise: {
     name: 'Make Concise',
     icon: 'scissors',
@@ -179,6 +189,16 @@ Text:
 {content}
 
 Concise version:`,
+  },
+  simplify: {
+    name: 'Simplify',
+    icon: 'minimize-2',
+    prompt: `Simplify the following text to plain, easy-to-understand language. Use short sentences and common words. Preserve the markdown formatting.
+
+Text:
+{content}
+
+Simplified version:`,
   },
   expand: {
     name: 'Expand',
@@ -209,6 +229,16 @@ Content:
 {content}
 
 Explanation:`,
+  },
+  translate: {
+    name: 'Translate',
+    icon: 'languages',
+    prompt: `Translate the following text into {customPrompt}. Preserve the markdown formatting exactly. Only output the translated text.
+
+Text:
+{content}
+
+Translation:`,
   },
   custom: {
     name: 'Custom Prompt',

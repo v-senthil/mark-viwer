@@ -160,6 +160,7 @@ export default function Navbar({
           <button
             onClick={() => setShowSidebar(prev => !prev)}
             title="Toggle sidebar (⌘B)"
+            aria-label="Toggle sidebar"
             className={`hidden sm:flex items-center justify-center w-7 h-7 rounded-md transition-colors mr-1
               ${showSidebar
                 ? dark ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-50 text-blue-600'
@@ -218,6 +219,7 @@ export default function Navbar({
         {/* Mobile: hamburger menu */}
         <button
           onClick={() => setMobileMenuOpen(v => !v)}
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           className={`sm:hidden inline-flex items-center justify-center w-7 h-7 rounded-md transition-colors
             ${dark ? 'text-gray-400 hover:bg-white/[.06]' : 'text-gray-500 hover:bg-gray-100'}`}
         >
@@ -233,7 +235,7 @@ export default function Navbar({
             { m: 'editor', I: PenLine, t: 'Editor' },
             { m: 'preview', I: Eye, t: 'Preview' },
           ].map(({ m, I, t }) => (
-            <button key={m} onClick={() => setView(m)} title={t}
+            <button key={m} onClick={() => setView(m)} title={t} aria-label={t}
               className={`inline-flex items-center justify-center w-7 h-7 rounded-md transition-all
                 ${settings.viewMode === m
                   ? dark ? 'bg-white/[.1] text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm'
@@ -246,6 +248,7 @@ export default function Navbar({
           <button
             onClick={() => updateSettings({ autoScroll: !settings.autoScroll })}
             title={settings.autoScroll ? 'Disable Auto Scroll' : 'Enable Auto Scroll'}
+            aria-label={settings.autoScroll ? 'Disable Auto Scroll' : 'Enable Auto Scroll'}
             className={`inline-flex items-center gap-1 h-7 px-2 ml-1.5 rounded-md text-[11px] font-medium transition-all
               ${settings.autoScroll
                 ? dark ? 'bg-blue-500/[.12] text-blue-400' : 'bg-blue-50 text-blue-600'
@@ -288,39 +291,39 @@ export default function Navbar({
 
         <div className={`hidden sm:block w-px h-4 mx-0.5 ${dark ? 'bg-[#21262d]' : 'bg-gray-200'}`} />
 
-        <button onClick={() => setShowAIPanel?.(true)} title="AI Assistant (Panel)"
+        <button onClick={() => setShowAIPanel?.(true)} title="AI Assistant (Panel)" aria-label="AI Assistant"
           className={`nav-icon-btn ${dark ? 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/[.12]' : 'text-purple-500 hover:text-purple-600 hover:bg-purple-50'}`}>
           <Zap size={15} strokeWidth={1.75} />
         </button>
 
-        <button onClick={onOpenAIWidget} title="AI Widget (Floating) Ctrl+."
+        <button onClick={onOpenAIWidget} title="AI Widget (Floating) Ctrl+." aria-label="AI Widget"
           className={`nav-icon-btn ${showAIWidget
             ? dark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'
             : dark ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-500/[.12]' : 'text-blue-500 hover:text-blue-600 hover:bg-blue-50'}`}>
           <MessageSquare size={15} strokeWidth={1.75} />
         </button>
 
-        <button onClick={() => setShowAnalytics?.(true)} title="Document Analytics"
+        <button onClick={() => setShowAnalytics?.(true)} title="Document Analytics" aria-label="Document Analytics"
           className={`nav-icon-btn ${dark ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/[.12]' : 'text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50'}`}>
           <BarChart3 size={15} strokeWidth={1.75} />
         </button>
 
-        <button onClick={() => setShowThemes?.(true)} title="Theme Manager"
+        <button onClick={() => setShowThemes?.(true)} title="Theme Manager" aria-label="Theme Manager"
           className={`nav-icon-btn ${dark ? 'text-pink-400 hover:text-pink-300 hover:bg-pink-500/[.12]' : 'text-pink-500 hover:text-pink-600 hover:bg-pink-50'}`}>
           <Palette size={15} strokeWidth={1.75} />
         </button>
 
-        <button onClick={() => setShowTOC(v => !v)} title="Table of Contents"
+        <button onClick={() => setShowTOC(v => !v)} title="Table of Contents" aria-label="Table of Contents"
           className={`nav-icon-btn ${dark ? 'text-gray-500 hover:text-gray-200 hover:bg-white/[.06]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
           <List size={15} strokeWidth={1.75} />
         </button>
 
-        <button onClick={() => setShowSettings(v => !v)} title="Settings"
+        <button onClick={() => setShowSettings(v => !v)} title="Settings" aria-label="Settings"
           className={`nav-icon-btn ${dark ? 'text-gray-500 hover:text-gray-200 hover:bg-white/[.06]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
           <Settings size={15} strokeWidth={1.75} />
         </button>
 
-        <button onClick={() => updateSettings({ darkMode: !dark })} title={dark ? 'Light mode' : 'Dark mode'}
+        <button onClick={() => updateSettings({ darkMode: !dark })} title={dark ? 'Light mode' : 'Dark mode'} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
           className={`nav-icon-btn ${dark ? 'text-gray-500 hover:text-amber-300 hover:bg-white/[.06]' : 'text-gray-400 hover:text-indigo-500 hover:bg-gray-100'}`}>
           {dark ? <Sun size={15} strokeWidth={1.75} /> : <Moon size={15} strokeWidth={1.75} />}
         </button>

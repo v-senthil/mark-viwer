@@ -39,6 +39,7 @@ function Tab({ tab, active, dark, unsaved, onActivate, onClose, onDragStart, onD
       )}
       <button
         onClick={(e) => { e.stopPropagation(); onClose(tab.id); }}
+        aria-label={`Close ${tab.name}`}
         className={`flex-shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity
           ${dark ? 'hover:bg-white/10 text-gray-500' : 'hover:bg-gray-200 text-gray-400'}`}
       >
@@ -120,7 +121,7 @@ export default function FileTabs({
 
       {/* Left scroll button */}
       {canScrollLeft && (
-        <button onClick={() => scroll(-1)}
+        <button onClick={() => scroll(-1)} aria-label="Scroll tabs left"
           className={`flex-shrink-0 px-1 z-10 border-r
             ${dark ? 'bg-[#161b22] border-[#21262d] text-gray-500 hover:text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-600'}`}>
           <ChevronLeft size={12} />
@@ -150,7 +151,7 @@ export default function FileTabs({
 
       {/* Right scroll button */}
       {canScrollRight && (
-        <button onClick={() => scroll(1)}
+        <button onClick={() => scroll(1)} aria-label="Scroll tabs right"
           className={`flex-shrink-0 px-1 z-10 border-l
             ${dark ? 'bg-[#161b22] border-[#21262d] text-gray-500 hover:text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-600'}`}>
           <ChevronRight size={12} />

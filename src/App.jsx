@@ -209,20 +209,84 @@ export default function App() {
     document.addEventListener('mouseup', handleMouseUp);
   }, [splitRatio]);
 
-  // Presentation mode
+  // Presentation mode with slide navigation
+  const [slideIndex, setSlideIndex] = useState(0);
+  const slides = useMemo(() => {
+    if (!presentationMode) return [];
+    // Split on --- (horizontal rule) or ## headings
+    return debouncedContent.split(/\n---\n/).map(s => s.trim()).filter(Boolean);
+  }, [debouncedContent, presentationMode]);
+
+  useEffect(() => {
+    if (presentationMode) setSlideIndex(0);
+  }, [presentationMode]);
+
+  useEffect(() => {
+    if (!presentationMode) return;
+    const onKey = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+        e.preventDefault();
+        setSlideIndex(i => Math.min(i + 1, slides.length - 1));
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSlideIndex(i => Math.max(i - 1, 0));
+      } else if (e.key === 'Escape') {
+        setPresentationMode(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [presentationMode, slides.length, setPresentationMode]);
+
   if (presentationMode) {
+    const totalSlides = slides.length || 1;
+    const currentSlide = slides[slideIndex] || debouncedContent;
     return (
-      <div className={`fixed inset-0 z-50 overflow-auto ${
+      <div className={`fixed inset-0 z-50 flex flex-col ${
         settings.darkMode ? 'bg-slate-900' : 'bg-white'
       }`}>
-        <button
-          onClick={() => setPresentationMode(false)}
-          className="fixed top-4 right-4 z-50 px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
-        >
-          Exit Presentation
-        </button>
-        <div className="max-w-4xl mx-auto p-8">
-          <MarkdownPreview content={debouncedContent} settings={settings} />
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
+          <span className={`text-sm ${settings.darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            {slideIndex + 1} / {totalSlides}
+          </span>
+          <button
+            onClick={() => setPresentationMode(false)}
+            className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+          >
+            Exit Presentation
+          </button>
+        </div>
+        {/* Slide content */}
+        <div className="flex-1 overflow-auto flex items-center justify-center">
+          <div className="max-w-4xl w-full p-8">
+            <MarkdownPreview content={currentSlide} settings={settings} />
+          </div>
+        </div>
+        {/* Navigation controls */}
+        <div className="flex items-center justify-center gap-4 py-3 flex-shrink-0">
+          <button
+            onClick={() => setSlideIndex(i => Math.max(i - 1, 0))}
+            disabled={slideIndex === 0}
+            className={`px-4 py-1.5 rounded-lg text-sm transition-colors ${
+              slideIndex === 0
+                ? 'opacity-30 cursor-not-allowed'
+                : settings.darkMode ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            ← Prev
+          </button>
+          <button
+            onClick={() => setSlideIndex(i => Math.min(i + 1, totalSlides - 1))}
+            disabled={slideIndex >= totalSlides - 1}
+            className={`px-4 py-1.5 rounded-lg text-sm transition-colors ${
+              slideIndex >= totalSlides - 1
+                ? 'opacity-30 cursor-not-allowed'
+                : settings.darkMode ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Next →
+          </button>
         </div>
       </div>
     );
@@ -360,6 +424,7 @@ export default function App() {
           onOpenFile={(meta, fileContent) => {
             openFileInTab(meta, fileContent);
           }}
+          onDeleteFile={(id) => closeTab(id)}
           onNewFile={newDocument}
         />
 
@@ -569,6 +634,15 @@ export default function App() {
               scrollIntoView: true,
             });
             view.focus();
+          }
+        }}
+        onOpenFile={async (meta) => {
+          try {
+            const { readFile } = await import('./lib/storage');
+            const fileContent = await readFile(meta.id);
+            openFileInTab(meta, fileContent);
+          } catch (e) {
+            console.error('Failed to open file from palette:', e);
           }
         }}
       />

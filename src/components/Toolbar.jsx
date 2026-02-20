@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import {
-  Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
+  Bold, Italic, Strikethrough, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6,
   Quote, Code, FileCode, Link, Image, Table2,
   ListOrdered, List, CheckSquare, Minus, GitBranch, Sigma, Workflow,
 } from 'lucide-react';
 
 function Btn({ icon: Icon, label, onClick, darkMode }) {
   return (
-    <button onClick={onClick} title={label}
+    <button onClick={onClick} title={label} aria-label={label}
       className={`group relative inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition-all duration-100 flex-shrink-0
         ${darkMode
           ? 'text-gray-400 hover:text-white hover:bg-white/[.08]'
@@ -54,6 +54,9 @@ export default function Toolbar({ editorRef, darkMode }) {
     { I: Heading1, l: 'Heading 1', a: () => apply('prefix', { prefix: '# ' }) },
     { I: Heading2, l: 'Heading 2', a: () => apply('prefix', { prefix: '## ' }) },
     { I: Heading3, l: 'Heading 3', a: () => apply('prefix', { prefix: '### ' }) },
+    { I: Heading4, l: 'Heading 4', a: () => apply('prefix', { prefix: '#### ' }) },
+    { I: Heading5, l: 'Heading 5', a: () => apply('prefix', { prefix: '##### ' }) },
+    { I: Heading6, l: 'Heading 6', a: () => apply('prefix', { prefix: '###### ' }) },
     'sep',
     { I: Quote, l: 'Blockquote', a: () => apply('prefix', { prefix: '> ' }) },
     { I: Code, l: 'Inline Code', a: () => apply('wrap', { before: '`', after: '`' }) },
@@ -74,7 +77,7 @@ export default function Toolbar({ editorRef, darkMode }) {
   ];
 
   return (
-    <div className={`flex items-center gap-0.5 px-1 sm:px-2 h-9 sm:h-10 border-b flex-shrink-0 no-print overflow-x-auto scrollbar-none
+    <div className={`flex items-center gap-0.5 px-1 sm:px-2 h-9 sm:h-10 border-b flex-shrink-0 no-print no-focus overflow-x-auto scrollbar-none
       ${darkMode ? 'bg-[#0d1117] border-[#21262d]' : 'bg-white border-gray-100'}`}>
       {items.map((item, i) =>
         item === 'sep'

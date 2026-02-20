@@ -63,6 +63,19 @@ export default function SettingsPanel({ settings, updateSettings, darkMode: dark
           <Section title="Preview" dark={dark}>
             <Slider label="Font Size" value={settings.previewFontSize} min={12} max={28} dark={dark} onChange={v => updateSettings({ previewFontSize: v })} unit="px" />
             <Slider label="Line Height" value={settings.previewLineHeight} min={1.2} max={2.2} step={0.1} dark={dark} onChange={v => updateSettings({ previewLineHeight: v })} />
+            <div className="flex items-center justify-between py-1.5">
+              <span className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-600'}`}>Font Family</span>
+              <select
+                value={settings.previewFontFamily || 'sans-serif'}
+                onChange={e => updateSettings({ previewFontFamily: e.target.value })}
+                className={`text-xs rounded-md px-2 py-1 border outline-none transition-colors
+                  ${dark ? 'bg-[#21262d] border-[#30363d] text-gray-300' : 'bg-white border-gray-200 text-gray-700'}`}
+              >
+                <option value="sans-serif">Sans Serif</option>
+                <option value="serif">Serif</option>
+                <option value="monospace">Monospace</option>
+              </select>
+            </div>
           </Section>
 
           <Section title="Modes" dark={dark}>

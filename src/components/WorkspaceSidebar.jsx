@@ -44,9 +44,10 @@ function timeAgo(ts) {
 }
 
 // ── File Item ────────────────────────────────────────────
-function FileItem({ file, dark, active, onOpen, onDelete, onRename, onTogglePin, selected, onToggleSelect, bulkMode }) {
+function FileItem({ file, dark, active, onOpen, onDelete, onRename, onTogglePin, onMove, folders, selected, onToggleSelect, bulkMode }) {
   const [menu, setMenu] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  const [showMove, setShowMove] = useState(false);
   const [name, setName] = useState(file.name);
 
   const doRename = () => {
@@ -116,6 +117,31 @@ function FileItem({ file, dark, active, onOpen, onDelete, onRename, onTogglePin,
                 className={`w-full flex items-center gap-2 px-3 py-1.5 text-[11px] ${dark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'}`}>
                 {file.pinned ? <><PinOff size={11} /> Unpin</> : <><Pin size={11} /> Pin</>}
               </button>
+              {folders && folders.length > 0 && (
+                <div className="relative">
+                  <button onClick={e => { e.stopPropagation(); setShowMove(!showMove); }}
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-[11px] ${dark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'}`}>
+                    <ArrowRight size={11} /> Move to…
+                  </button>
+                  {showMove && (
+                    <div className={`absolute left-full top-0 ml-1 w-36 rounded-lg shadow-lg border py-1 z-50
+                      ${dark ? 'bg-[#1c2128] border-[#30363d]' : 'bg-white border-gray-200'}`}>
+                      {file.folder && (
+                        <button onClick={e => { e.stopPropagation(); onMove(file.id, ''); setMenu(false); setShowMove(false); }}
+                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-[11px] ${dark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'}`}>
+                          <FolderOpen size={11} /> / (root)
+                        </button>
+                      )}
+                      {folders.filter(f => f !== file.folder).map(f => (
+                        <button key={f} onClick={e => { e.stopPropagation(); onMove(file.id, f); setMenu(false); setShowMove(false); }}
+                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-[11px] ${dark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'}`}>
+                          <FolderOpen size={11} /> {f}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <button onClick={e => { e.stopPropagation(); onDelete(file.id); setMenu(false); }}
                 className={`w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-red-500 ${dark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
                 <Trash2 size={11} /> Delete
@@ -151,6 +177,7 @@ export default function WorkspaceSidebar({
   onClose,
   activeFileId,
   onOpenFile,       // (meta, content) => void
+  onDeleteFile,     // (id) => void — close tab when file deleted
   onNewFile,        // () => void — create blank file in editor
   width = 260,
 }) {
@@ -223,6 +250,7 @@ export default function WorkspaceSidebar({
   const handleDelete = async (id) => {
     if (!confirm('Delete this file?')) return;
     await deleteFile(id);
+    onDeleteFile?.(id);
     refresh();
   };
 
@@ -233,6 +261,11 @@ export default function WorkspaceSidebar({
 
   const handleTogglePin = async (id) => {
     togglePin(id);
+    refresh();
+  };
+
+  const handleMove = async (id, folder) => {
+    await moveFile(id, folder);
     refresh();
   };
 
@@ -524,7 +557,8 @@ export default function WorkspaceSidebar({
                 {pinnedFiles.map(f => (
                   <FileItem key={f.id} file={f} dark={dark} active={f.id === activeFileId}
                     onOpen={handleOpenFile} onDelete={handleDelete} onRename={handleRename}
-                    onTogglePin={handleTogglePin} bulkMode={bulkMode}
+                    onTogglePin={handleTogglePin} onMove={handleMove} folders={folders}
+                    bulkMode={bulkMode}
                     selected={selectedIds.has(f.id)} onToggleSelect={toggleSelect} />
                 ))}
               </div>
@@ -542,7 +576,8 @@ export default function WorkspaceSidebar({
                 {rootFiles.map(f => (
                   <FileItem key={f.id} file={f} dark={dark} active={f.id === activeFileId}
                     onOpen={handleOpenFile} onDelete={handleDelete} onRename={handleRename}
-                    onTogglePin={handleTogglePin} bulkMode={bulkMode}
+                    onTogglePin={handleTogglePin} onMove={handleMove} folders={folders}
+                    bulkMode={bulkMode}
                     selected={selectedIds.has(f.id)} onToggleSelect={toggleSelect} />
                 ))}
               </div>
@@ -563,7 +598,8 @@ export default function WorkspaceSidebar({
                     {fFiles.map(f => (
                       <FileItem key={f.id} file={f} dark={dark} active={f.id === activeFileId}
                         onOpen={handleOpenFile} onDelete={handleDelete} onRename={handleRename}
-                        onTogglePin={handleTogglePin} bulkMode={bulkMode}
+                        onTogglePin={handleTogglePin} onMove={handleMove} folders={folders}
+                        bulkMode={bulkMode}
                         selected={selectedIds.has(f.id)} onToggleSelect={toggleSelect} />
                     ))}
                   </div>

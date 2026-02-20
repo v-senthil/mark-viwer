@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Search, Command, ArrowUp, ArrowDown, CornerDownLeft, X } from 'lucide-react';
 import { extractSymbols, searchAll, PALETTE_COMMANDS } from '../lib/navigation';
+import { listFiles } from '../lib/storage';
 
 // Icon mapping for symbol types
 const symbolIcons = {
@@ -88,6 +89,7 @@ export default function CommandPalette({
   // Handlers for commands
   onCommand,
   onNavigateToLine,
+  onOpenFile,       // (fileMeta) => void — open workspace file
 }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -97,8 +99,25 @@ export default function CommandPalette({
   // Extract symbols from content
   const symbols = useMemo(() => extractSymbols(content || ''), [content]);
   
+  // Workspace files for search
+  const wsFiles = useMemo(() => {
+    try { return listFiles(); } catch { return []; }
+  }, [isOpen]);
+
   // Search results
   const results = useMemo(() => {
+    // Handle :lineNumber navigation
+    const lineMatch = query.match(/^:(\d+)$/);
+    if (lineMatch) {
+      const lineNum = parseInt(lineMatch[1], 10);
+      return [{
+        type: 'symbol',
+        text: `Go to line ${lineNum}`,
+        line: lineNum,
+        kind: 'line',
+        score: 100,
+      }];
+    }
     if (!query.trim()) {
       // Show recent/popular commands when empty
       return PALETTE_COMMANDS.slice(0, 8).map(cmd => ({
@@ -107,8 +126,22 @@ export default function CommandPalette({
         score: 0,
       }));
     }
-    return searchAll(query, symbols);
-  }, [query, symbols]);
+    const commandAndSymbol = searchAll(query, symbols);
+    // Search workspace files by name
+    const q = query.toLowerCase();
+    const fileResults = wsFiles
+      .filter(f => f.name?.toLowerCase().includes(q) || f.title?.toLowerCase().includes(q))
+      .slice(0, 5)
+      .map(f => ({
+        type: 'file',
+        text: f.title || f.name,
+        label: f.name,
+        icon: '📄',
+        meta: f,
+        score: f.name?.toLowerCase().startsWith(q) ? 90 : 70,
+      }));
+    return [...fileResults, ...commandAndSymbol].sort((a, b) => (b.score || 0) - (a.score || 0));
+  }, [query, symbols, wsFiles]);
   
   // Reset selection when results change
   useEffect(() => {
@@ -161,6 +194,8 @@ export default function CommandPalette({
   const handleSelect = useCallback((item) => {
     if (item.type === 'command') {
       onCommand?.(item.id);
+    } else if (item.type === 'file') {
+      onOpenFile?.(item.meta);
     } else {
       // Navigate to line
       onNavigateToLine?.(item.line);

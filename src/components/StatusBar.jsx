@@ -5,7 +5,7 @@ export default function StatusBar({ stats, settings, darkMode: dark, isMobile })
   if (settings.focusMode) badges.push('FOCUS');
 
   return (
-    <div className={`flex items-center justify-between h-[26px] px-2 sm:px-3 text-[11px] border-t flex-shrink-0 no-print select-none font-medium
+    <div className={`flex items-center justify-between h-[26px] px-2 sm:px-3 text-[11px] border-t flex-shrink-0 no-print no-focus select-none font-medium
       ${dark ? 'bg-[#0d1117] border-[#21262d] text-gray-500' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <span className="whitespace-nowrap">{stats.words} words</span>

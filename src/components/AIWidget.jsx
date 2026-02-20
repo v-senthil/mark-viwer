@@ -15,7 +15,7 @@ import {
   X, Zap, Pencil, FileText, CheckCircle, Scissors, Maximize2,
   List, HelpCircle, MessageSquare, Square, GripHorizontal,
   Copy, Check, ArrowRight, RotateCcw, AlertCircle, Sparkles,
-  Minimize2, ChevronDown, ChevronUp, Send
+  Minimize2, ChevronDown, ChevronUp, Send, RefreshCw, Languages, ArrowLeftRight
 } from 'lucide-react';
 import { getAIClient, PROMPT_TEMPLATES, loadAISettings, PROVIDERS } from '../lib/aiClient';
 import { marked } from 'marked';
@@ -25,11 +25,14 @@ import DOMPurify from 'dompurify';
 const ACTION_ICONS = {
   continue: Pencil,
   summarize: FileText,
+  rewrite: RefreshCw,
   fixGrammar: CheckCircle,
   makeConcise: Scissors,
+  simplify: Minimize2,
   expand: Maximize2,
   generateOutline: List,
   explain: HelpCircle,
+  translate: Languages,
   custom: MessageSquare,
 };
 
@@ -225,6 +228,13 @@ function AIWidgetComponent({
     }
   };
 
+  // Replace selection with response
+  const handleReplace = () => {
+    if (response && onReplaceSelection) {
+      onReplaceSelection(response);
+    }
+  };
+
   // Handle custom prompt submit
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -413,10 +423,20 @@ function AIWidgetComponent({
                         onClick={handleInsert}
                         className={`p-1 rounded transition-colors
                           ${dark ? 'text-gray-600 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}
-                        title="Insert"
+                        title="Insert at cursor"
                       >
                         <ArrowRight size={10} />
                       </button>
+                      {hasSelection && (
+                        <button
+                          onClick={handleReplace}
+                          className={`p-1 rounded transition-colors
+                            ${dark ? 'text-gray-600 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}
+                          title="Replace selection"
+                        >
+                          <ArrowLeftRight size={10} />
+                        </button>
+                      )}
                       <button
                         onClick={handleClear}
                         className={`p-1 rounded transition-colors

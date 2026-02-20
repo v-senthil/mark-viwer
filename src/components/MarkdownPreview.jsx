@@ -184,6 +184,12 @@ export default function MarkdownPreview({ content, settings, onTOC }) {
     minimal: 'preview-minimal',
   }[settings.previewTheme] || '';
 
+  const previewStyle = {
+    fontSize: settings.previewFontSize ? `${settings.previewFontSize}px` : undefined,
+    lineHeight: settings.previewLineHeight || undefined,
+    fontFamily: settings.previewFontFamily || undefined,
+  };
+
   return (
     <div
       ref={previewRef}
@@ -194,6 +200,7 @@ export default function MarkdownPreview({ content, settings, onTOC }) {
     >
       <div
         className="preview-content prose dark:prose-invert max-w-none"
+        style={previewStyle}
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>

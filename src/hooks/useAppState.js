@@ -10,7 +10,7 @@ import {
 const STORAGE_KEY = 'markviewer_content';
 const SETTINGS_KEY = 'markviewer_settings';
 const RECENT_KEY = 'markviewer_recent';
-const AUTOSAVE_INTERVAL = 10000;
+const AUTOSAVE_INTERVAL = 30000;
 const TABS_KEY = 'markviewer_open_tabs';
 
 const defaultSettings = {
@@ -181,6 +181,29 @@ export function useAppState() {
     return () => clearInterval(interval);
   }, [activeTabId, openTabs, storageReady]);
 
+  // Cross-tab sync via BroadcastChannel
+  const channelRef = useRef(null);
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    const channel = new BroadcastChannel('markviewer_sync');
+    const handler = (e) => {
+      const { type, payload } = e.data || {};
+      if (type === 'settings') {
+        setSettings(prev => ({ ...prev, ...payload }));
+      }
+      if (type === 'content' && payload?.id === activeTabId) {
+        setContent(payload.content);
+      }
+    };
+    channel.addEventListener('message', handler);
+    channelRef.current = channel;
+    return () => {
+      channel.removeEventListener('message', handler);
+      channel.close();
+      channelRef.current = null;
+    };
+  }, [activeTabId]);
+
   // Init storage on mount
   useEffect(() => {
     initStorage().then(() => {
@@ -224,6 +247,7 @@ export function useAppState() {
 
   const updateSettings = useCallback((updates) => {
     setSettingsRaw(prev => ({ ...prev, ...updates }));
+    try { channelRef.current?.postMessage({ type: 'settings', payload: updates }); } catch {}
   }, []);
 
   const saveNow = useCallback(async () => {
