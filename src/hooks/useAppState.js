@@ -96,6 +96,8 @@ export function useAppState() {
   const [showTOC, setShowTOC] = useState(false);
   const [showRecentDocs, setShowRecentDocs] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
+  const [showAISettings, setShowAISettings] = useState(false);
   const contentRef = useRef(content);
 
   useEffect(() => { contentRef.current = content; }, [content]);
@@ -202,5 +204,7 @@ export function useAppState() {
     showTOC, setShowTOC,
     showRecentDocs, setShowRecentDocs,
     presentationMode, setPresentationMode,
+    showAIPanel, setShowAIPanel,
+    showAISettings, setShowAISettings,
   };
 }

@@ -6,7 +6,7 @@ import {
   Columns2, PenLine, Eye, Share2, List, BookOpen, Keyboard,
   Presentation, Target, Maximize2, Terminal, AlignCenter,
   Settings, Sun, Moon, ChevronDown, Link, Timer, ArrowUpDown,
-  Menu, X,
+  Menu, X, Zap,
 } from 'lucide-react';
 
 /* ── Dropdown ───────────────────────────────────────────── */
@@ -71,6 +71,7 @@ export default function Navbar({
   hasUnsavedChanges, lastSaved, content, setContent, addToRecent,
   setShowCheatsheet, setShowShortcuts, setShowSettings,
   setShowTOC, setShowRecentDocs, setPresentationMode,
+  setShowAIPanel,
   isMobile,
 }) {
   const fileRef = useRef(null);
@@ -273,6 +274,11 @@ export default function Navbar({
 
         <div className={`hidden sm:block w-px h-4 mx-0.5 ${dark ? 'bg-[#21262d]' : 'bg-gray-200'}`} />
 
+        <button onClick={() => setShowAIPanel?.(true)} title="AI Assistant"
+          className={`nav-icon-btn ${dark ? 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/[.12]' : 'text-purple-500 hover:text-purple-600 hover:bg-purple-50'}`}>
+          <Zap size={15} strokeWidth={1.75} />
+        </button>
+
         <button onClick={() => setShowTOC(v => !v)} title="Table of Contents"
           className={`nav-icon-btn ${dark ? 'text-gray-500 hover:text-gray-200 hover:bg-white/[.06]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
           <List size={15} strokeWidth={1.75} />
@@ -311,6 +317,7 @@ export default function Navbar({
               <MDivider dark={dark} />
               <MLabel dark={dark}>Panels</MLabel>
               <MI icon={List} label="Table of Contents" dark={dark} onClick={() => { setShowTOC(v => !v); setMobileMenuOpen(false); }} />
+              <MI icon={Zap} label="AI Assistant" dark={dark} onClick={() => { setShowAIPanel?.(true); setMobileMenuOpen(false); }} />
               <MI icon={Presentation} label="Presentation" dark={dark} onClick={() => { setPresentationMode(true); setMobileMenuOpen(false); }} />
               <MDivider dark={dark} />
               <MLabel dark={dark}>Modes</MLabel>

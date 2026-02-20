@@ -7,6 +7,7 @@ const groups = [
     { keys: ['⌘', 'O'], desc: 'Open file' },
     { keys: ['⌘', '/'], desc: 'Keyboard shortcuts' },
     { keys: ['⌘', '⇧', 'K'], desc: 'Toggle dark mode' },
+    { keys: ['⌘', '⇧', 'A'], desc: 'AI Assistant' },
     { keys: ['Esc'], desc: 'Exit current mode' },
   ]},
   { title: 'Formatting', items: [

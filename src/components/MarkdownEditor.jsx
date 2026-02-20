@@ -105,7 +105,38 @@ export default function MarkdownEditor({ content, onChange, settings, onStats, e
     });
 
     viewRef.current = view;
-    if (externalRef) externalRef.current = view;
+    
+    // Expose helper methods for external access (e.g., AI panel)
+    if (externalRef) {
+      externalRef.current = {
+        view,
+        // Get currently selected text
+        getSelection: () => {
+          const state = view.state;
+          const { from, to } = state.selection.main;
+          return from !== to ? state.sliceDoc(from, to) : '';
+        },
+        // Insert text at cursor position
+        insertText: (text) => {
+          const pos = view.state.selection.main.head;
+          view.dispatch({ changes: { from: pos, insert: text } });
+          view.focus();
+        },
+        // Replace current selection with text
+        replaceSelection: (text) => {
+          const { from, to } = view.state.selection.main;
+          view.dispatch({
+            changes: { from, to, insert: text },
+            selection: { anchor: from + text.length },
+          });
+          view.focus();
+        },
+        // Focus the editor
+        focus: () => view.focus(),
+        // Execute a CodeMirror command
+        dispatch: (...args) => view.dispatch(...args),
+      };
+    }
 
     // Initial stats
     if (onStatsRef.current) {

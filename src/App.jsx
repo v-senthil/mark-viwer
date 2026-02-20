@@ -10,6 +10,8 @@ import CheatsheetPanel from './components/CheatsheetPanel';
 import ShortcutsPanel from './components/ShortcutsPanel';
 import TOCPanel from './components/TOCPanel';
 import RecentDocsPanel from './components/RecentDocsPanel';
+import AIPanel from './components/AIPanel';
+import AISettings from './components/AISettings';
 import { PenLine, Eye } from 'lucide-react';
 
 function useIsMobile(breakpoint = 640) {
@@ -36,6 +38,8 @@ export default function App() {
     showTOC, setShowTOC,
     showRecentDocs, setShowRecentDocs,
     presentationMode, setPresentationMode,
+    showAIPanel, setShowAIPanel,
+    showAISettings, setShowAISettings,
   } = state;
 
   const isMobile = useIsMobile();
@@ -106,16 +110,23 @@ export default function App() {
         e.preventDefault();
         updateSettings({ darkMode: !settings.darkMode });
       }
-      // Escape: Exit zen/focus/presentation mode
+      // Ctrl+Shift+A: Open AI panel
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        setShowAIPanel(prev => !prev);
+      }
+      // Escape: Exit zen/focus/presentation mode or close panels
       if (e.key === 'Escape') {
-        if (settings.zenMode) updateSettings({ zenMode: false });
-        if (settings.focusMode) updateSettings({ focusMode: false });
-        if (presentationMode) setPresentationMode(false);
+        if (showAIPanel) setShowAIPanel(false);
+        else if (showAISettings) setShowAISettings(false);
+        else if (settings.zenMode) updateSettings({ zenMode: false });
+        else if (settings.focusMode) updateSettings({ focusMode: false });
+        else if (presentationMode) setPresentationMode(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [saveNow, settings.darkMode, settings.zenMode, settings.focusMode, presentationMode, updateSettings, setPresentationMode]);
+  }, [saveNow, settings.darkMode, settings.zenMode, settings.focusMode, presentationMode, updateSettings, setPresentationMode, showAIPanel, showAISettings, setShowAIPanel, setShowAISettings]);
 
   // Resizable split pane
   const handleMouseDown = useCallback((e) => {
@@ -219,6 +230,7 @@ export default function App() {
         setShowTOC={setShowTOC}
         setShowRecentDocs={setShowRecentDocs}
         setPresentationMode={setPresentationMode}
+        setShowAIPanel={setShowAIPanel}
         isMobile={isMobile}
       />
 
@@ -333,6 +345,26 @@ export default function App() {
           darkMode={dark}
           onClose={() => setShowRecentDocs(false)}
           onOpen={setContent}
+        />
+      )}
+      {showAIPanel && (
+        <AIPanel
+          darkMode={dark}
+          onClose={() => setShowAIPanel(false)}
+          content={content}
+          selectedText={editorRef.current?.getSelection?.() || ''}
+          onInsertText={(text) => editorRef.current?.insertText?.(text)}
+          onReplaceSelection={(text) => editorRef.current?.replaceSelection?.(text)}
+          onOpenSettings={() => {
+            setShowAIPanel(false);
+            setShowAISettings(true);
+          }}
+        />
+      )}
+      {showAISettings && (
+        <AISettings
+          darkMode={dark}
+          onClose={() => setShowAISettings(false)}
         />
       )}
     </div>
