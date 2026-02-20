@@ -5,6 +5,7 @@ import {
   Columns2, PenLine, Eye, Share2, List, BookOpen, Keyboard,
   Presentation, Target, Maximize2, Terminal, AlignCenter,
   Settings, Sun, Moon, ChevronDown, Link, Timer, ArrowUpDown,
+  Menu, X,
 } from 'lucide-react';
 
 /* ── Dropdown ───────────────────────────────────────────── */
@@ -69,9 +70,11 @@ export default function Navbar({
   hasUnsavedChanges, lastSaved, content, setContent, addToRecent,
   setShowCheatsheet, setShowShortcuts, setShowSettings,
   setShowTOC, setShowRecentDocs, setPresentationMode,
+  isMobile,
 }) {
   const fileRef = useRef(null);
   const dark = settings.darkMode;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNew = useCallback(() => {
     if (hasUnsavedChanges && !window.confirm('Unsaved changes will be lost. Continue?')) return;
@@ -120,66 +123,78 @@ export default function Navbar({
   };
 
   return (
-    <nav className={`flex items-center justify-between h-11 px-3 border-b flex-shrink-0 no-print select-none
+    <nav className={`flex items-center justify-between h-11 px-2 sm:px-3 border-b flex-shrink-0 no-print select-none
       ${dark ? 'bg-[#0d1117] border-[#21262d]' : 'bg-white border-gray-200'}`}>
 
       <input ref={fileRef} type="file" accept=".md,.txt,.markdown" onChange={handleFileChange} className="hidden" />
 
       {/* Left */}
       <div className="flex items-center gap-0.5">
-        <div className={`flex items-center gap-2 mr-2.5 pr-2.5 border-r ${dark ? 'border-[#21262d]' : 'border-gray-200'}`}>
+        <div className={`flex items-center gap-1.5 sm:gap-2 mr-1.5 sm:mr-2.5 pr-1.5 sm:pr-2.5 border-r ${dark ? 'border-[#21262d]' : 'border-gray-200'}`}>
           <div className={`w-6 h-6 rounded-[7px] flex items-center justify-center ${dark ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
             <BookOpen size={13} className="text-blue-500" strokeWidth={2.25} />
           </div>
-          <span className={`text-[13px] font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>MarkViewer</span>
+          <span className={`hidden sm:inline text-[13px] font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>MarkViewer</span>
         </div>
 
-        <Dropdown label="File" dark={dark}>
-          {(close) => (<>
-            <MI icon={FilePlus2} label="New Document" shortcut="⌘N" dark={dark} onClick={() => { handleNew(); close(); }} />
-            <MI icon={FolderOpen} label="Open File…" shortcut="⌘O" dark={dark} onClick={() => { handleOpen(); close(); }} />
-            <MI icon={Clock} label="Recent Documents" dark={dark} onClick={() => { setShowRecentDocs(true); close(); }} />
-            <MDivider dark={dark} />
-            <MI icon={Save} label="Save" shortcut="⌘S" dark={dark} onClick={() => { saveNow(); toast.success('Saved'); close(); }} />
-            <MI icon={Download} label="Download .md" dark={dark} onClick={() => { handleDownload(); close(); }} />
-            <MDivider dark={dark} />
-            <MLabel dark={dark}>Export</MLabel>
-            <MI icon={FileCode2} label="Export as HTML" dark={dark} onClick={() => { handleExportHTML(); close(); }} />
-            <MI icon={Printer} label="Print / PDF" dark={dark} onClick={() => { window.print(); close(); }} />
-          </>)}
-        </Dropdown>
+        {/* Desktop dropdowns */}
+        <div className="hidden sm:flex items-center gap-0.5">
+          <Dropdown label="File" dark={dark}>
+            {(close) => (<>
+              <MI icon={FilePlus2} label="New Document" shortcut="⌘N" dark={dark} onClick={() => { handleNew(); close(); }} />
+              <MI icon={FolderOpen} label="Open File…" shortcut="⌘O" dark={dark} onClick={() => { handleOpen(); close(); }} />
+              <MI icon={Clock} label="Recent Documents" dark={dark} onClick={() => { setShowRecentDocs(true); close(); }} />
+              <MDivider dark={dark} />
+              <MI icon={Save} label="Save" shortcut="⌘S" dark={dark} onClick={() => { saveNow(); toast.success('Saved'); close(); }} />
+              <MI icon={Download} label="Download .md" dark={dark} onClick={() => { handleDownload(); close(); }} />
+              <MDivider dark={dark} />
+              <MLabel dark={dark}>Export</MLabel>
+              <MI icon={FileCode2} label="Export as HTML" dark={dark} onClick={() => { handleExportHTML(); close(); }} />
+              <MI icon={Printer} label="Print / PDF" dark={dark} onClick={() => { window.print(); close(); }} />
+            </>)}
+          </Dropdown>
 
-        <Dropdown label="View" dark={dark}>
-          {(close) => (<>
-            <MLabel dark={dark}>Layout</MLabel>
-            <MI icon={Columns2} label="Split View" dark={dark} active={settings.viewMode==='split'} onClick={() => { setView('split'); close(); }} />
-            <MI icon={PenLine} label="Editor Only" dark={dark} active={settings.viewMode==='editor'} onClick={() => { setView('editor'); close(); }} />
-            <MI icon={Eye} label="Preview Only" dark={dark} active={settings.viewMode==='preview'} onClick={() => { setView('preview'); close(); }} />
-            <MDivider dark={dark} />
-            <MLabel dark={dark}>Panels</MLabel>
-            <MI icon={List} label="Table of Contents" dark={dark} onClick={() => { setShowTOC(v => !v); close(); }} />
-            <MI icon={Presentation} label="Presentation" dark={dark} onClick={() => { setPresentationMode(true); close(); }} />
-            <MDivider dark={dark} />
-            <MLabel dark={dark}>Modes</MLabel>
-            <MI icon={Target} label="Focus Mode" dark={dark} active={settings.focusMode} onClick={() => { updateSettings({ focusMode: !settings.focusMode }); close(); }} />
-            <MI icon={Maximize2} label="Zen Mode" dark={dark} active={settings.zenMode} onClick={() => { updateSettings({ zenMode: !settings.zenMode }); close(); }} />
-            <MI icon={AlignCenter} label="Typewriter" dark={dark} active={settings.typewriterMode} onClick={() => { updateSettings({ typewriterMode: !settings.typewriterMode }); close(); }} />
-            <MI icon={Terminal} label="Vim Mode" dark={dark} active={settings.vimMode} onClick={() => { updateSettings({ vimMode: !settings.vimMode }); close(); }} />
-            <MDivider dark={dark} />
-            <MLabel dark={dark}>Scrolling</MLabel>
-            <MI icon={ArrowUpDown} label="Auto Scroll" dark={dark} active={settings.autoScroll} onClick={() => { updateSettings({ autoScroll: !settings.autoScroll }); close(); }} />
-          </>)}
-        </Dropdown>
+          <Dropdown label="View" dark={dark}>
+            {(close) => (<>
+              <MLabel dark={dark}>Layout</MLabel>
+              <MI icon={Columns2} label="Split View" dark={dark} active={settings.viewMode==='split'} onClick={() => { setView('split'); close(); }} />
+              <MI icon={PenLine} label="Editor Only" dark={dark} active={settings.viewMode==='editor'} onClick={() => { setView('editor'); close(); }} />
+              <MI icon={Eye} label="Preview Only" dark={dark} active={settings.viewMode==='preview'} onClick={() => { setView('preview'); close(); }} />
+              <MDivider dark={dark} />
+              <MLabel dark={dark}>Panels</MLabel>
+              <MI icon={List} label="Table of Contents" dark={dark} onClick={() => { setShowTOC(v => !v); close(); }} />
+              <MI icon={Presentation} label="Presentation" dark={dark} onClick={() => { setPresentationMode(true); close(); }} />
+              <MDivider dark={dark} />
+              <MLabel dark={dark}>Modes</MLabel>
+              <MI icon={Target} label="Focus Mode" dark={dark} active={settings.focusMode} onClick={() => { updateSettings({ focusMode: !settings.focusMode }); close(); }} />
+              <MI icon={Maximize2} label="Zen Mode" dark={dark} active={settings.zenMode} onClick={() => { updateSettings({ zenMode: !settings.zenMode }); close(); }} />
+              <MI icon={AlignCenter} label="Typewriter" dark={dark} active={settings.typewriterMode} onClick={() => { updateSettings({ typewriterMode: !settings.typewriterMode }); close(); }} />
+              <MI icon={Terminal} label="Vim Mode" dark={dark} active={settings.vimMode} onClick={() => { updateSettings({ vimMode: !settings.vimMode }); close(); }} />
+              <MDivider dark={dark} />
+              <MLabel dark={dark}>Scrolling</MLabel>
+              <MI icon={ArrowUpDown} label="Auto Scroll" dark={dark} active={settings.autoScroll} onClick={() => { updateSettings({ autoScroll: !settings.autoScroll }); close(); }} />
+            </>)}
+          </Dropdown>
 
-        <Dropdown label="Help" dark={dark}>
-          {(close) => (<>
-            <MI icon={BookOpen} label="Markdown Cheatsheet" dark={dark} onClick={() => { setShowCheatsheet(true); close(); }} />
-            <MI icon={Keyboard} label="Keyboard Shortcuts" shortcut="⌘/" dark={dark} onClick={() => { setShowShortcuts(true); close(); }} />
-          </>)}
-        </Dropdown>
+          <Dropdown label="Help" dark={dark}>
+            {(close) => (<>
+              <MI icon={BookOpen} label="Markdown Cheatsheet" dark={dark} onClick={() => { setShowCheatsheet(true); close(); }} />
+              <MI icon={Keyboard} label="Keyboard Shortcuts" shortcut="⌘/" dark={dark} onClick={() => { setShowShortcuts(true); close(); }} />
+            </>)}
+          </Dropdown>
+        </div>
+
+        {/* Mobile: hamburger menu */}
+        <button
+          onClick={() => setMobileMenuOpen(v => !v)}
+          className={`sm:hidden inline-flex items-center justify-center w-7 h-7 rounded-md transition-colors
+            ${dark ? 'text-gray-400 hover:bg-white/[.06]' : 'text-gray-500 hover:bg-gray-100'}`}
+        >
+          {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
+        </button>
       </div>
 
-      {/* Center – view switcher */}
+      {/* Center – view switcher (desktop only) */}
       <div className="hidden sm:flex items-center">
         <div className={`inline-flex items-center p-[3px] rounded-lg gap-px ${dark ? 'bg-white/[.04]' : 'bg-gray-100'}`}>
           {[
@@ -211,7 +226,7 @@ export default function Navbar({
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1">
         <div className={`hidden md:flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium mr-1
           ${hasUnsavedChanges ? dark ? 'text-amber-400/80' : 'text-amber-600/80' : dark ? 'text-gray-600' : 'text-gray-400'}`}>
           <span className={`w-[5px] h-[5px] rounded-full ${hasUnsavedChanges ? 'bg-amber-400 animate-pulse' : dark ? 'bg-gray-700' : 'bg-gray-300'}`} />
@@ -250,6 +265,44 @@ export default function Navbar({
           {dark ? <Sun size={15} strokeWidth={1.75} /> : <Moon size={15} strokeWidth={1.75} />}
         </button>
       </div>
+
+      {/* Mobile slide-out menu */}
+      {mobileMenuOpen && (
+        <>
+          <div className="sm:hidden fixed inset-0 z-40 bg-black/30" onClick={() => setMobileMenuOpen(false)} />
+          <div className={`sm:hidden fixed top-11 left-0 right-0 z-50 max-h-[70vh] overflow-y-auto border-b rounded-b-2xl
+            ${dark ? 'bg-[#161b22] border-[#30363d]' : 'bg-white border-gray-200 shadow-xl'}`}>
+            <div className="py-2">
+              <MLabel dark={dark}>File</MLabel>
+              <MI icon={FilePlus2} label="New Document" dark={dark} onClick={() => { handleNew(); setMobileMenuOpen(false); }} />
+              <MI icon={FolderOpen} label="Open File…" dark={dark} onClick={() => { handleOpen(); setMobileMenuOpen(false); }} />
+              <MI icon={Clock} label="Recent Documents" dark={dark} onClick={() => { setShowRecentDocs(true); setMobileMenuOpen(false); }} />
+              <MI icon={Save} label="Save" dark={dark} onClick={() => { saveNow(); toast.success('Saved'); setMobileMenuOpen(false); }} />
+              <MI icon={Download} label="Download .md" dark={dark} onClick={() => { handleDownload(); setMobileMenuOpen(false); }} />
+              <MI icon={FileCode2} label="Export as HTML" dark={dark} onClick={() => { handleExportHTML(); setMobileMenuOpen(false); }} />
+              <MDivider dark={dark} />
+              <MLabel dark={dark}>Layout</MLabel>
+              <MI icon={Columns2} label="Split View" dark={dark} active={settings.viewMode==='split'} onClick={() => { setView('split'); setMobileMenuOpen(false); }} />
+              <MI icon={PenLine} label="Editor Only" dark={dark} active={settings.viewMode==='editor'} onClick={() => { setView('editor'); setMobileMenuOpen(false); }} />
+              <MI icon={Eye} label="Preview Only" dark={dark} active={settings.viewMode==='preview'} onClick={() => { setView('preview'); setMobileMenuOpen(false); }} />
+              <MDivider dark={dark} />
+              <MLabel dark={dark}>Panels</MLabel>
+              <MI icon={List} label="Table of Contents" dark={dark} onClick={() => { setShowTOC(v => !v); setMobileMenuOpen(false); }} />
+              <MI icon={Presentation} label="Presentation" dark={dark} onClick={() => { setPresentationMode(true); setMobileMenuOpen(false); }} />
+              <MDivider dark={dark} />
+              <MLabel dark={dark}>Modes</MLabel>
+              <MI icon={Target} label="Focus Mode" dark={dark} active={settings.focusMode} onClick={() => { updateSettings({ focusMode: !settings.focusMode }); setMobileMenuOpen(false); }} />
+              <MI icon={Maximize2} label="Zen Mode" dark={dark} active={settings.zenMode} onClick={() => { updateSettings({ zenMode: !settings.zenMode }); setMobileMenuOpen(false); }} />
+              <MI icon={AlignCenter} label="Typewriter" dark={dark} active={settings.typewriterMode} onClick={() => { updateSettings({ typewriterMode: !settings.typewriterMode }); setMobileMenuOpen(false); }} />
+              <MI icon={ArrowUpDown} label="Auto Scroll" dark={dark} active={settings.autoScroll} onClick={() => { updateSettings({ autoScroll: !settings.autoScroll }); setMobileMenuOpen(false); }} />
+              <MDivider dark={dark} />
+              <MLabel dark={dark}>Help</MLabel>
+              <MI icon={BookOpen} label="Markdown Cheatsheet" dark={dark} onClick={() => { setShowCheatsheet(true); setMobileMenuOpen(false); }} />
+              <MI icon={Keyboard} label="Keyboard Shortcuts" dark={dark} onClick={() => { setShowShortcuts(true); setMobileMenuOpen(false); }} />
+            </div>
+          </div>
+        </>
+      )}
     </nav>
   );
 }

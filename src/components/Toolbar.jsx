@@ -8,11 +8,11 @@ import {
 function Btn({ icon: Icon, label, onClick, darkMode }) {
   return (
     <button onClick={onClick} title={label}
-      className={`group relative inline-flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-100
+      className={`group relative inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition-all duration-100 flex-shrink-0
         ${darkMode
           ? 'text-gray-400 hover:text-white hover:bg-white/[.08]'
           : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
-      <Icon size={16} strokeWidth={1.75} />
+      <Icon size={15} strokeWidth={1.75} />
     </button>
   );
 }
@@ -74,7 +74,7 @@ export default function Toolbar({ editorRef, darkMode }) {
   ];
 
   return (
-    <div className={`flex items-center gap-0.5 px-2 h-10 border-b flex-shrink-0 no-print overflow-x-auto
+    <div className={`flex items-center gap-0.5 px-1 sm:px-2 h-9 sm:h-10 border-b flex-shrink-0 no-print overflow-x-auto scrollbar-none
       ${darkMode ? 'bg-[#0d1117] border-[#21262d]' : 'bg-white border-gray-100'}`}>
       {items.map((item, i) =>
         item === 'sep'

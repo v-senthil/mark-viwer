@@ -10,6 +10,18 @@ import CheatsheetPanel from './components/CheatsheetPanel';
 import ShortcutsPanel from './components/ShortcutsPanel';
 import TOCPanel from './components/TOCPanel';
 import RecentDocsPanel from './components/RecentDocsPanel';
+import { PenLine, Eye } from 'lucide-react';
+
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < breakpoint);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 export default function App() {
   const state = useAppState();
@@ -26,6 +38,7 @@ export default function App() {
     presentationMode, setPresentationMode,
   } = state;
 
+  const isMobile = useIsMobile();
   const editorRef = useRef(null);
   const editorWrapperRef = useRef(null);
   const previewWrapperRef = useRef(null);
@@ -34,6 +47,7 @@ export default function App() {
   const [splitRatio, setSplitRatio] = useState(settings.splitRatio || 50);
   const [isResizing, setIsResizing] = useState(false);
   const [debouncedContent, setDebouncedContent] = useState(content);
+  const [mobileTab, setMobileTab] = useState('editor');
 
   // Debounce content for preview (150ms)
   useEffect(() => {
@@ -174,6 +188,15 @@ export default function App() {
   const showEditor = viewMode === 'split' || viewMode === 'editor';
   const showPreview = viewMode === 'split' || viewMode === 'preview';
 
+  // On mobile, force single-pane based on mobileTab when in split mode
+  const mobileShowEditor = isMobile
+    ? (viewMode === 'editor' || (viewMode === 'split' && mobileTab === 'editor'))
+    : showEditor;
+  const mobileShowPreview = isMobile
+    ? (viewMode === 'preview' || (viewMode === 'split' && mobileTab === 'preview'))
+    : showPreview;
+  const showMobileTabBar = isMobile && viewMode === 'split';
+
   return (
     <div className={`h-full flex flex-col ${dark ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'} ${
       focusMode ? 'focus-mode' : ''
@@ -196,11 +219,36 @@ export default function App() {
         setShowTOC={setShowTOC}
         setShowRecentDocs={setShowRecentDocs}
         setPresentationMode={setPresentationMode}
+        isMobile={isMobile}
       />
 
       {/* Toolbar */}
-      {showEditor && (
+      {mobileShowEditor && (
         <Toolbar editorRef={editorRef} darkMode={dark} />
+      )}
+
+      {/* Mobile Tab Bar */}
+      {showMobileTabBar && (
+        <div className={`mobile-tab-bar border-b ${dark ? 'bg-[#0d1117] border-[#21262d]' : 'bg-gray-50 border-gray-200'}`}>
+          <button
+            onClick={() => setMobileTab('editor')}
+            className={`${mobileTab === 'editor'
+              ? dark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'
+              : dark ? 'text-gray-500' : 'text-gray-400'}`}
+          >
+            <PenLine size={14} strokeWidth={1.75} />
+            Editor
+          </button>
+          <button
+            onClick={() => setMobileTab('preview')}
+            className={`${mobileTab === 'preview'
+              ? dark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'
+              : dark ? 'text-gray-500' : 'text-gray-400'}`}
+          >
+            <Eye size={14} strokeWidth={1.75} />
+            Preview
+          </button>
+        </div>
       )}
 
       {/* Main Content */}
@@ -211,16 +259,17 @@ export default function App() {
             headings={headings}
             darkMode={dark}
             onClose={() => setShowTOC(false)}
+            isMobile={isMobile}
           />
         )}
 
         {/* Editor */}
-        {showEditor && (
+        {mobileShowEditor && (
           <div
             ref={editorWrapperRef}
             className={`overflow-hidden ${dark ? 'bg-slate-900' : 'bg-white'}`}
             style={{
-              width: viewMode === 'split' ? `${splitRatio}%` : '100%',
+              width: (!isMobile && viewMode === 'split') ? `${splitRatio}%` : '100%',
               flexShrink: 0,
             }}
           >
@@ -235,7 +284,7 @@ export default function App() {
         )}
 
         {/* Resizer */}
-        {viewMode === 'split' && (
+        {!isMobile && viewMode === 'split' && (
           <div
             className={`resizer ${isResizing ? 'active' : ''}`}
             onMouseDown={handleMouseDown}
@@ -243,7 +292,7 @@ export default function App() {
         )}
 
         {/* Preview */}
-        {showPreview && (
+        {mobileShowPreview && (
           <div ref={previewWrapperRef} className="flex-1 overflow-hidden">
             <MarkdownPreview
               content={debouncedContent}
@@ -255,7 +304,7 @@ export default function App() {
       </div>
 
       {/* Status Bar */}
-      <StatusBar stats={stats} settings={settings} darkMode={dark} />
+      <StatusBar stats={stats} settings={settings} darkMode={dark} isMobile={isMobile} />
 
       {/* Panels / Drawers */}
       {showSettings && (
