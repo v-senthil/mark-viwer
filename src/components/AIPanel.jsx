@@ -55,13 +55,26 @@ function ActionButton({ action, template, onClick, dark, disabled }) {
 // Streaming response display with markdown support
 function ResponseDisplay({ content, isStreaming, error, dark }) {
   const containerRef = useRef(null);
+  const userScrolledUpRef = useRef(false);
 
-  // Auto-scroll while streaming
+  // Auto-scroll while streaming — only if user hasn't scrolled up
   useEffect(() => {
-    if (isStreaming && containerRef.current) {
+    if (isStreaming && containerRef.current && !userScrolledUpRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, [content, isStreaming]);
+
+  // Reset scroll lock when a new stream starts
+  useEffect(() => {
+    if (isStreaming) userScrolledUpRef.current = false;
+  }, [isStreaming]);
+
+  const handleScroll = useCallback(() => {
+    const el = containerRef.current;
+    if (!el || !isStreaming) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    userScrolledUpRef.current = !atBottom;
+  }, [isStreaming]);
 
   // Render markdown content
   const renderedContent = useMemo(() => {
@@ -91,6 +104,7 @@ function ResponseDisplay({ content, isStreaming, error, dark }) {
   return (
     <div
       ref={containerRef}
+      onScroll={handleScroll}
       className={`relative max-h-[400px] overflow-y-auto rounded-lg border p-4
         ${dark ? 'bg-[#161b22] border-[#30363d]' : 'bg-gray-50 border-gray-200'}`}
     >

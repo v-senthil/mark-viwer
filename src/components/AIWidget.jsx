@@ -70,18 +70,31 @@ function AIWidgetComponent({
   const responseRef = useRef(null);
   const lastUpdateRef = useRef(0);
   const pendingResponseRef = useRef('');
+  const userScrolledUpRef = useRef(false);
 
   // Save position to localStorage
   useEffect(() => {
     localStorage.setItem('aiWidgetPosition', JSON.stringify(position));
   }, [position]);
 
-  // Auto-scroll response
+  // Auto-scroll response — only if user hasn't scrolled up
   useEffect(() => {
-    if (isStreaming && responseRef.current) {
+    if (isStreaming && responseRef.current && !userScrolledUpRef.current) {
       responseRef.current.scrollTop = responseRef.current.scrollHeight;
     }
   }, [response, isStreaming]);
+
+  // Reset scroll lock when streaming starts/stops
+  useEffect(() => {
+    if (isStreaming) userScrolledUpRef.current = false;
+  }, [isStreaming]);
+
+  const handleResponseScroll = useCallback(() => {
+    const el = responseRef.current;
+    if (!el || !isStreaming) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    userScrolledUpRef.current = !atBottom;
+  }, [isStreaming]);
 
   // Get the text to process
   const hasSelection = useMemo(() => !!selectedText?.trim(), [selectedText]);
@@ -419,6 +432,7 @@ function AIWidgetComponent({
 
               <div
                 ref={responseRef}
+                onScroll={handleResponseScroll}
                 className={`max-h-[200px] overflow-y-auto rounded-lg border p-3 text-xs
                   ${dark ? 'bg-[#0d1117] border-[#30363d]' : 'bg-gray-50 border-gray-200'}`}
               >
