@@ -73,16 +73,6 @@ open /path/to/MarkViewer.app
 
 Or: Right-click the app → **Open** → click **Open** in the security dialog.
 
-## Deployment
-
-### Vercel
-
-Push to GitHub, import in [Vercel](https://vercel.com), and deploy. Auto-detected as Vite.
-
-### Netlify
-
-Push to GitHub, import in [Netlify](https://netlify.com). Build command: `npm run build`, publish directory: `dist`.
-
 ## Sharing Documents
 
 Click **🔗 Share** — the document is LZ-compressed into the URL hash. Anyone with the link sees the same content instantly, no server required.
