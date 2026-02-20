@@ -17,18 +17,18 @@ A full-featured, production-ready **real-time Markdown editor** with live previe
 
 ## Tech Stack
 
-| Technology | Purpose |
-|-----------|---------|
-| React 18 | UI framework |
-| Tailwind CSS 4 | Styling |
-| CodeMirror 6 | Editor |
-| marked.js | Markdown parsing |
-| DOMPurify | HTML sanitization |
-| highlight.js | Code syntax highlighting |
-| KaTeX | Math rendering |
-| Mermaid.js | Diagrams |
-| lz-string | URL compression |
-| react-hot-toast | Notifications |
+| Technology      | Purpose                  |
+| --------------- | ------------------------ |
+| React 18        | UI framework             |
+| Tailwind CSS 4  | Styling                  |
+| CodeMirror 6    | Editor                   |
+| marked.js       | Markdown parsing         |
+| DOMPurify       | HTML sanitization        |
+| highlight.js    | Code syntax highlighting |
+| KaTeX           | Math rendering           |
+| Mermaid.js      | Diagrams                 |
+| lz-string       | URL compression          |
+| react-hot-toast | Notifications            |
 
 ## Getting Started
 
@@ -50,12 +50,37 @@ npm run build
 
 Output in `dist/`.
 
+## Desktop App (Tauri)
+
+### Build Desktop App
+
+```bash
+npm run tauri build
+```
+
+### macOS Installation
+
+When downloading the app, macOS may show **"MarkViewer is damaged and can't be opened"**. This happens because the app isn't signed with an Apple Developer certificate.
+
+**Easy Fix:** Extract the ZIP and double-click `install-markviewer.sh` — it removes the quarantine flag and launches the app.
+
+**Manual Fix:** Open Terminal and run:
+
+```bash
+xattr -cr /path/to/MarkViewer.app
+open /path/to/MarkViewer.app
+```
+
+Or: Right-click the app → **Open** → click **Open** in the security dialog.
+
 ## Deployment
 
 ### Vercel
+
 Push to GitHub, import in [Vercel](https://vercel.com), and deploy. Auto-detected as Vite.
 
 ### Netlify
+
 Push to GitHub, import in [Netlify](https://netlify.com). Build command: `npm run build`, publish directory: `dist`.
 
 ## Sharing Documents
@@ -64,12 +89,12 @@ Click **🔗 Share** — the document is LZ-compressed into the URL hash. Anyone
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+S | Save |
-| Ctrl+H | Find & Replace |
-| Ctrl+Shift+K | Toggle dark mode |
-| Escape | Exit Zen/Focus mode |
+| Shortcut     | Action              |
+| ------------ | ------------------- |
+| Ctrl+S       | Save                |
+| Ctrl+H       | Find & Replace      |
+| Ctrl+Shift+K | Toggle dark mode    |
+| Escape       | Exit Zen/Focus mode |
 
 ## License
 
