@@ -6,7 +6,7 @@ import {
   Columns2, PenLine, Eye, Share2, List, BookOpen, Keyboard,
   Presentation, Target, Maximize2, Terminal, AlignCenter,
   Settings, Sun, Moon, ChevronDown, Link, Timer, ArrowUpDown,
-  Menu, X, Zap,
+  Menu, X, Zap, BarChart3, Palette,
 } from 'lucide-react';
 
 /* ── Dropdown ───────────────────────────────────────────── */
@@ -71,7 +71,7 @@ export default function Navbar({
   hasUnsavedChanges, lastSaved, content, setContent, addToRecent,
   setShowCheatsheet, setShowShortcuts, setShowSettings,
   setShowTOC, setShowRecentDocs, setPresentationMode,
-  setShowAIPanel,
+  setShowAIPanel, setShowAnalytics, setShowThemes,
   isMobile,
 }) {
   const fileRef = useRef(null);
@@ -279,6 +279,16 @@ export default function Navbar({
           <Zap size={15} strokeWidth={1.75} />
         </button>
 
+        <button onClick={() => setShowAnalytics?.(true)} title="Document Analytics"
+          className={`nav-icon-btn ${dark ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/[.12]' : 'text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50'}`}>
+          <BarChart3 size={15} strokeWidth={1.75} />
+        </button>
+
+        <button onClick={() => setShowThemes?.(true)} title="Theme Manager"
+          className={`nav-icon-btn ${dark ? 'text-pink-400 hover:text-pink-300 hover:bg-pink-500/[.12]' : 'text-pink-500 hover:text-pink-600 hover:bg-pink-50'}`}>
+          <Palette size={15} strokeWidth={1.75} />
+        </button>
+
         <button onClick={() => setShowTOC(v => !v)} title="Table of Contents"
           className={`nav-icon-btn ${dark ? 'text-gray-500 hover:text-gray-200 hover:bg-white/[.06]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
           <List size={15} strokeWidth={1.75} />
@@ -318,6 +328,8 @@ export default function Navbar({
               <MLabel dark={dark}>Panels</MLabel>
               <MI icon={List} label="Table of Contents" dark={dark} onClick={() => { setShowTOC(v => !v); setMobileMenuOpen(false); }} />
               <MI icon={Zap} label="AI Assistant" dark={dark} onClick={() => { setShowAIPanel?.(true); setMobileMenuOpen(false); }} />
+              <MI icon={BarChart3} label="Document Analytics" dark={dark} onClick={() => { setShowAnalytics?.(true); setMobileMenuOpen(false); }} />
+              <MI icon={Palette} label="Theme Manager" dark={dark} onClick={() => { setShowThemes?.(true); setMobileMenuOpen(false); }} />
               <MI icon={Presentation} label="Presentation" dark={dark} onClick={() => { setPresentationMode(true); setMobileMenuOpen(false); }} />
               <MDivider dark={dark} />
               <MLabel dark={dark}>Modes</MLabel>

@@ -12,6 +12,9 @@ import TOCPanel from './components/TOCPanel';
 import RecentDocsPanel from './components/RecentDocsPanel';
 import AIPanel from './components/AIPanel';
 import AISettings from './components/AISettings';
+import AnalyticsPanel from './components/AnalyticsPanel';
+import ThemePanel from './components/ThemePanel';
+import CommandPalette from './components/CommandPalette';
 import { PenLine, Eye } from 'lucide-react';
 
 function useIsMobile(breakpoint = 640) {
@@ -40,6 +43,9 @@ export default function App() {
     presentationMode, setPresentationMode,
     showAIPanel, setShowAIPanel,
     showAISettings, setShowAISettings,
+    showAnalytics, setShowAnalytics,
+    showThemes, setShowThemes,
+    showCommandPalette, setShowCommandPalette,
   } = state;
 
   const isMobile = useIsMobile();
@@ -115,9 +121,22 @@ export default function App() {
         e.preventDefault();
         setShowAIPanel(prev => !prev);
       }
+      // Ctrl+Shift+D: Open Analytics panel
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        setShowAnalytics(prev => !prev);
+      }
+      // Ctrl+P or Cmd+K: Open command palette
+      if (((e.ctrlKey || e.metaKey) && e.key === 'p') || ((e.metaKey) && e.key === 'k')) {
+        e.preventDefault();
+        setShowCommandPalette(true);
+      }
       // Escape: Exit zen/focus/presentation mode or close panels
       if (e.key === 'Escape') {
-        if (showAIPanel) setShowAIPanel(false);
+        if (showCommandPalette) setShowCommandPalette(false);
+        else if (showThemes) setShowThemes(false);
+        else if (showAnalytics) setShowAnalytics(false);
+        else if (showAIPanel) setShowAIPanel(false);
         else if (showAISettings) setShowAISettings(false);
         else if (settings.zenMode) updateSettings({ zenMode: false });
         else if (settings.focusMode) updateSettings({ focusMode: false });
@@ -126,7 +145,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [saveNow, settings.darkMode, settings.zenMode, settings.focusMode, presentationMode, updateSettings, setPresentationMode, showAIPanel, showAISettings, setShowAIPanel, setShowAISettings]);
+  }, [saveNow, settings.darkMode, settings.zenMode, settings.focusMode, presentationMode, updateSettings, setPresentationMode, showAIPanel, showAISettings, showAnalytics, showThemes, showCommandPalette, setShowAIPanel, setShowAISettings, setShowAnalytics, setShowThemes, setShowCommandPalette]);
 
   // Resizable split pane
   const handleMouseDown = useCallback((e) => {
@@ -231,6 +250,8 @@ export default function App() {
         setShowRecentDocs={setShowRecentDocs}
         setPresentationMode={setPresentationMode}
         setShowAIPanel={setShowAIPanel}
+        setShowAnalytics={setShowAnalytics}
+        setShowThemes={setShowThemes}
         isMobile={isMobile}
       />
 
@@ -367,6 +388,71 @@ export default function App() {
           onClose={() => setShowAISettings(false)}
         />
       )}
+      {showAnalytics && (
+        <AnalyticsPanel
+          content={content}
+          darkMode={dark}
+          onClose={() => setShowAnalytics(false)}
+        />
+      )}
+      {showThemes && (
+        <ThemePanel
+          settings={settings}
+          updateSettings={updateSettings}
+          darkMode={dark}
+          onClose={() => setShowThemes(false)}
+        />
+      )}
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        content={content}
+        darkMode={dark}
+        onCommand={(cmdId) => {
+          const commandActions = {
+            'view-split': () => updateSettings({ viewMode: 'split' }),
+            'view-editor': () => updateSettings({ viewMode: 'editor' }),
+            'view-preview': () => updateSettings({ viewMode: 'preview' }),
+            'toggle-dark': () => updateSettings({ darkMode: !settings.darkMode }),
+            'toggle-focus': () => updateSettings({ focusMode: !settings.focusMode }),
+            'toggle-zen': () => updateSettings({ zenMode: !settings.zenMode }),
+            'toggle-vim': () => updateSettings({ vimMode: !settings.vimMode }),
+            'toggle-typewriter': () => updateSettings({ typewriterMode: !settings.typewriterMode }),
+            'open-settings': () => setShowSettings(true),
+            'open-ai': () => setShowAIPanel(true),
+            'open-analytics': () => setShowAnalytics(true),
+            'open-themes': () => setShowThemes(true),
+            'open-toc': () => setShowTOC(true),
+            'open-cheatsheet': () => setShowCheatsheet(true),
+            'open-shortcuts': () => setShowShortcuts(true),
+            'file-new': () => newDocument(),
+            'file-save': () => saveNow(),
+            'file-download': () => {
+              const b = new Blob([content], { type: 'text/markdown' });
+              const u = URL.createObjectURL(b);
+              const a = document.createElement('a');
+              a.href = u; a.download = 'document.md'; a.click();
+              URL.revokeObjectURL(u);
+            },
+            'file-print': () => window.print(),
+            'presentation': () => setPresentationMode(true),
+          };
+          const action = commandActions[cmdId];
+          if (action) action();
+        }}
+        onNavigateToLine={(line) => {
+          // Navigate to line in editor
+          const view = editorRef.current;
+          if (view && view.state) {
+            const lineInfo = view.state.doc.line(Math.min(line, view.state.doc.lines));
+            view.dispatch({
+              selection: { anchor: lineInfo.from },
+              scrollIntoView: true,
+            });
+            view.focus();
+          }
+        }}
+      />
     </div>
   );
 }

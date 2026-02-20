@@ -8,6 +8,7 @@ const groups = [
     { keys: ['⌘', '/'], desc: 'Keyboard shortcuts' },
     { keys: ['⌘', '⇧', 'K'], desc: 'Toggle dark mode' },
     { keys: ['⌘', '⇧', 'A'], desc: 'AI Assistant' },
+    { keys: ['⌘', '⇧', 'D'], desc: 'Document Analytics' },
     { keys: ['Esc'], desc: 'Exit current mode' },
   ]},
   { title: 'Formatting', items: [
