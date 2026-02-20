@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:desktop": "cross-env TAURI_BUILD=1 vite build",
+    "build:desktop": "npx cross-env TAURI_BUILD=1 vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "tauri": "tauri"
