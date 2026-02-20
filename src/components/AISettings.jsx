@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 import {
   loadAISettings, saveAISettings, maskApiKey,
-  PROVIDERS, DEFAULT_AI_SETTINGS, getAIClient, resetAIClient
+  PROVIDERS, DEFAULT_AI_SETTINGS, getAIClient, resetAIClient,
+  fetchOllamaModels
 } from '../lib/aiClient';
 
 // Individual input components for clean UI
@@ -141,8 +142,25 @@ export default function AISettings({ darkMode: dark, onClose }) {
   const [testStatus, setTestStatus] = useState(null); // null | 'testing' | 'success' | 'error'
   const [testMessage, setTestMessage] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
+  const [ollamaModels, setOllamaModels] = useState([]);
+  const [loadingModels, setLoadingModels] = useState(false);
 
   const provider = PROVIDERS[settings.provider];
+
+  // Fetch Ollama models when provider is ollama or endpoint changes
+  useEffect(() => {
+    if (settings.provider === 'ollama') {
+      setLoadingModels(true);
+      fetchOllamaModels(settings.ollamaEndpoint).then(models => {
+        setOllamaModels(models);
+        setLoadingModels(false);
+        // Auto-select first model if none selected
+        if (models.length > 0 && !settings.ollamaModel) {
+          setSettings(prev => ({ ...prev, ollamaModel: models[0].id }));
+        }
+      });
+    }
+  }, [settings.provider, settings.ollamaEndpoint]);
 
   // Update a setting
   const updateSetting = (key, value) => {
@@ -175,7 +193,10 @@ export default function AISettings({ darkMode: dark, onClose }) {
   // Get models for current provider
   const getModels = () => {
     if (settings.provider === 'ollama') {
-      return PROVIDERS.ollama.models.map(m => ({ value: m.id, label: m.name }));
+      if (ollamaModels.length > 0) {
+        return ollamaModels.map(m => ({ value: m.id, label: m.name }));
+      }
+      return [{ value: '', label: loadingModels ? 'Loading...' : 'No models found' }];
     }
     if (settings.provider === 'custom') {
       return [{ value: settings.model || 'gpt-4', label: settings.model || 'gpt-4' }];
@@ -222,23 +243,11 @@ export default function AISettings({ darkMode: dark, onClose }) {
               dark={dark}
               options={[
                 { value: 'openai', label: 'OpenAI' },
-                { value: 'anthropic', label: 'Anthropic Claude' },
+                { value: 'google', label: 'Google AI (Gemini)' },
                 { value: 'ollama', label: 'Ollama (Local)' },
                 { value: 'custom', label: 'Custom Endpoint' },
               ]}
             />
-
-            {/* CORS Warning for Anthropic */}
-            {settings.provider === 'anthropic' && (
-              <div className={`flex items-start gap-2 p-3 rounded-lg text-[12px]
-                ${dark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700'}`}>
-                <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>CORS Warning:</strong> Claude API cannot be called directly from browsers due to CORS restrictions. 
-                  You may need a proxy server.
-                </div>
-              </div>
-            )}
           </FormSection>
 
           {/* API Key (if required) */}
@@ -261,9 +270,9 @@ export default function AISettings({ darkMode: dark, onClose }) {
                   Get your API key <ExternalLink size={12} />
                 </a>
               )}
-              {settings.provider === 'anthropic' && (
+              {settings.provider === 'google' && (
                 <a
-                  href="https://console.anthropic.com/settings/keys"
+                  href="https://aistudio.google.com/app/apikey"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`inline-flex items-center gap-1.5 text-[12px] transition-colors
@@ -286,15 +295,41 @@ export default function AISettings({ darkMode: dark, onClose }) {
                 dark={dark}
                 icon={Server}
               />
-              <SelectInput
-                label="Model"
-                value={settings.ollamaModel}
-                onChange={v => updateSetting('ollamaModel', v)}
-                dark={dark}
-                options={getModels()}
-              />
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className={`text-[13px] ${dark ? 'text-gray-300' : 'text-gray-700'}`}>Model</span>
+                  <button
+                    onClick={() => {
+                      setLoadingModels(true);
+                      fetchOllamaModels(settings.ollamaEndpoint).then(models => {
+                        setOllamaModels(models);
+                        setLoadingModels(false);
+                      });
+                    }}
+                    className={`text-[11px] px-2 py-0.5 rounded transition-colors flex items-center gap-1
+                      ${dark ? 'text-blue-400 hover:bg-blue-400/10' : 'text-blue-600 hover:bg-blue-50'}`}
+                  >
+                    {loadingModels ? <Loader2 size={10} className="animate-spin" /> : '↻'} Refresh
+                  </button>
+                </div>
+                <select
+                  value={settings.ollamaModel}
+                  onChange={e => updateSetting('ollamaModel', e.target.value)}
+                  disabled={loadingModels}
+                  className={`w-full text-[13px] px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer transition-colors
+                    ${loadingModels ? 'opacity-50 cursor-wait' : ''}
+                    ${dark ? 'bg-[#21262d] border-[#30363d] text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                >
+                  {getModels().map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
               <p className={`text-[11px] ${dark ? 'text-gray-600' : 'text-gray-400'}`}>
-                Make sure Ollama is running locally with CORS enabled.
+                {ollamaModels.length > 0 
+                  ? `${ollamaModels.length} model${ollamaModels.length > 1 ? 's' : ''} available locally`
+                  : 'Make sure Ollama is running locally with CORS enabled.'
+                }
               </p>
             </FormSection>
           )}
@@ -321,8 +356,8 @@ export default function AISettings({ darkMode: dark, onClose }) {
             </FormSection>
           )}
 
-          {/* Model Selection (for OpenAI and Anthropic) */}
-          {(settings.provider === 'openai' || settings.provider === 'anthropic') && (
+          {/* Model Selection (for OpenAI and Google) */}
+          {(settings.provider === 'openai' || settings.provider === 'google') && (
             <FormSection title="Model" dark={dark}>
               <SelectInput
                 label="Model"

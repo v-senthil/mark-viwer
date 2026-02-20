@@ -3,7 +3,7 @@
  * 
  * Provides a unified interface for multiple AI providers:
  * - OpenAI (GPT-4, GPT-3.5)
- * - Anthropic Claude
+ * - Google AI (Gemini)
  * - Ollama (local)
  * - Custom OpenAI-compatible endpoints
  * 
@@ -12,6 +12,7 @@
  * - BYOK (Bring Your Own Key) model
  * - Secure key handling (never logged)
  * - Friendly error messages
+ * - Dynamic Ollama model discovery
  */
 
 // Storage key for AI settings
@@ -42,27 +43,20 @@ export const PROVIDERS = {
     endpoint: 'https://api.openai.com/v1/chat/completions',
     requiresKey: true,
   },
-  anthropic: {
-    name: 'Anthropic Claude',
+  google: {
+    name: 'Google AI (Gemini)',
     models: [
-      { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4 (Latest)' },
-      { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
-      { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku (Fast)' },
-      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Latest)' },
+      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Fast)' },
+      { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro' },
     ],
-    endpoint: 'https://api.anthropic.com/v1/messages',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
     requiresKey: true,
-    corsWarning: true, // Browser CORS restrictions apply
   },
   ollama: {
     name: 'Ollama (Local)',
-    models: [
-      { id: 'llama3.2', name: 'Llama 3.2' },
-      { id: 'llama3.1', name: 'Llama 3.1' },
-      { id: 'mistral', name: 'Mistral' },
-      { id: 'codellama', name: 'Code Llama' },
-      { id: 'phi3', name: 'Phi-3' },
-    ],
+    models: [], // Dynamically fetched
     requiresKey: false,
   },
   custom: {
@@ -71,6 +65,30 @@ export const PROVIDERS = {
     requiresKey: true,
   },
 };
+
+/**
+ * Fetch available Ollama models from local server
+ * @param {string} endpoint - Ollama server endpoint
+ * @returns {Promise<Array<{id: string, name: string}>>}
+ */
+export async function fetchOllamaModels(endpoint = 'http://localhost:11434') {
+  try {
+    const response = await fetch(`${endpoint}/api/tags`, {
+      method: 'GET',
+    });
+    if (!response.ok) throw new Error('Failed to connect to Ollama');
+    const data = await response.json();
+    return (data.models || []).map(m => ({
+      id: m.name,
+      name: m.name,
+      size: m.size,
+      modified: m.modified_at,
+    }));
+  } catch (error) {
+    console.warn('Failed to fetch Ollama models:', error);
+    return [];
+  }
+}
 
 // Prompt templates for AI actions
 export const PROMPT_TEMPLATES = {
@@ -193,16 +211,17 @@ function buildRequestBody(provider, model, messages, settings) {
   const { temperature, maxTokens } = settings;
 
   switch (provider) {
-    case 'anthropic':
-      // Anthropic uses a different format
+    case 'google':
+      // Google AI uses a different format
       return {
-        model,
-        max_tokens: maxTokens,
-        temperature,
-        messages: messages.map(m => ({
-          role: m.role === 'system' ? 'user' : m.role,
-          content: m.content,
+        contents: messages.map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
         })),
+        generationConfig: {
+          temperature,
+          maxOutputTokens: maxTokens,
+        },
       };
     
     case 'ollama':
@@ -238,11 +257,8 @@ function buildHeaders(provider, apiKey) {
   };
 
   switch (provider) {
-    case 'anthropic':
-      headers['x-api-key'] = apiKey;
-      headers['anthropic-version'] = '2023-06-01';
-      // Note: anthropic-dangerous-direct-browser-access would be needed
-      // but is not recommended for production
+    case 'google':
+      // Google AI uses API key in URL, not header
       break;
     
     case 'openai':
@@ -263,8 +279,10 @@ function buildHeaders(provider, apiKey) {
  */
 function getEndpoint(provider, settings) {
   switch (provider) {
-    case 'anthropic':
-      return PROVIDERS.anthropic.endpoint;
+    case 'google':
+      // Google AI endpoint includes model and API key
+      const model = settings.model || 'gemini-2.0-flash';
+      return `${PROVIDERS.google.endpoint}/${model}:streamGenerateContent?alt=sse&key=${settings.apiKey}`;
     
     case 'ollama':
       return `${settings.ollamaEndpoint || 'http://localhost:11434'}/api/chat`;
@@ -303,10 +321,12 @@ function parseStreamChunk(chunk, provider) {
         const parsed = JSON.parse(data);
         
         switch (provider) {
-          case 'anthropic':
-            if (parsed.type === 'content_block_delta') {
-              content += parsed.delta?.text || '';
-            } else if (parsed.type === 'message_stop') {
+          case 'google':
+            // Google AI streaming format
+            if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
+              content += parsed.candidates[0].content.parts[0].text;
+            }
+            if (parsed.candidates?.[0]?.finishReason) {
               done = true;
             }
             break;
@@ -365,8 +385,8 @@ function formatError(error, provider) {
     return 'The AI service is temporarily unavailable. Please try again later.';
   }
   if (message.includes('CORS') || message.includes('Failed to fetch')) {
-    if (provider === 'anthropic') {
-      return 'CORS error: Claude API cannot be called directly from browsers. Consider using a proxy or the OpenAI API instead.';
+    if (provider === 'google') {
+      return 'Network error connecting to Google AI. Please check your API key and internet connection.';
     }
     if (provider === 'ollama') {
       return 'Cannot connect to Ollama. Make sure Ollama is running locally and CORS is enabled.';
@@ -488,9 +508,9 @@ export class AIClient {
 
       const body = buildRequestBody(provider, model, messages, this.settings);
 
-      // For Anthropic, we need to enable streaming differently
-      if (provider === 'anthropic') {
-        body.stream = true;
+      // Google AI uses streaming via URL parameter, not body
+      if (provider === 'google') {
+        delete body.stream;
       }
 
       const response = await fetch(endpoint, {
